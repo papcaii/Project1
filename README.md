@@ -1,4 +1,19 @@
-# Project1
-something from papcaii and kakundam
+# Project 1
 
-Docs: https://docs.google.com/document/d/11w4li3BwzRBDgchZ0EQYa_aQc2JgQEDFQK2WTC5q-9c/edit?usp=sharing
+## Description
+A message app based on Java
+
+## Requirement
+Please refer in [Requirement](Requirement.MD)
+
+## Contributor
+| Student ID  | Student Name |
+| ------------- | ------------- |
+| 20225545 | Nguyễn Quang Hưng  |
+| 20225544  | Hạ Nhật Duy  |
+
+## Progress
+
+For now our progress will store in this [Docs](https://docs.google.com/document/d/11w4li3BwzRBDgchZ0EQYa_aQc2JgQEDFQK2WTC5q-9c/edit?usp=sharing)
+
+Well, it will be deleted when this project is done
