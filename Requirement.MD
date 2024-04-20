@@ -15,7 +15,7 @@ Xây dựng ứng dụng chat
 
 Thực tế các tính năng khi bắt đầu triển khai thành lập các sơ đồ:
   - Có 2 loại account: user và admin
-    + Với một user:
+-  Với một user:
 	- Chỉnh sửa hồ sơ
 	- Đổi mật khẩu
 	- Nhắn tin cho người khác
@@ -24,7 +24,7 @@ Thực tế các tính năng khi bắt đầu triển khai thành lập các sơ
 	- Hiển thị trạng thái bạn bè
 	- Cập nhật trạng thái (để bạn bè biết)
 	- Tìm kiếm lịch sử nhắn tin
-    + Với một admin: 
+- Với một admin: 
 	- Có toàn bộ tính năng của user
 	- Tùy biến group (?) 
 	- Có quyền chỉnh sửa user thuộc quyền kiểm soát
