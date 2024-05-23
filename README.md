@@ -3,8 +3,19 @@
 ## Description
 A message app based on Java
 
-## Requirement
+## Task
 Please refer in [Requirement](Requirement.MD)
+
+## How to use  
+### Prerequisite  
+- Make sure you have java SDK and maven
+
+### Running
+#### On terminal
+```bash
+cd ./client
+mvn clean javafx:run
+```
 
 ## Contributor
 | Student ID  | Student Name |
