@@ -6,6 +6,11 @@ A message app based on Java
 ## Task
 Please refer in [Requirement](Requirement.MD)
 
+## Technology
+- **Language**: Java
+- **GUI**: JavaFX
+- **Database**: MySQL
+
 ## How to use  
 ### Prerequisite  
 - Make sure you have java SDK and maven
