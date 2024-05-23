@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Point3D?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane fx:id="borderPane" maxHeight="620.0" maxWidth="1040.0" prefHeight="620.0" prefWidth="1040.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.chatwindow.ChatController">
+   <center>
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+         <children>
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" prefHeight="496.0" vbarPolicy="ALWAYS" vmin="1.0" vvalue="1.0" VBox.vgrow="ALWAYS">
+               <content>
+                  <ListView fx:id="chatPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" />
+               </content>
+            </ScrollPane>
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="100.0" VBox.vgrow="NEVER">
+               <children>
+                  <TextArea fx:id="messageBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="100.0" nodeOrientation="LEFT_TO_RIGHT" onKeyPressed="#sendMethod" prefHeight="16.0" prefWidth="698.0" promptText="Enter Message..." scaleShape="false" HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font name="SansSerif Regular" size="14.0" />
+                     </font>
+                  </TextArea>
+                  <Button fx:id="buttonSend" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#sendButtonAction" prefHeight="43.0" prefWidth="140.0" scaleShape="false" text="Send" textAlignment="CENTER" HBox.hgrow="NEVER" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+   <left>
+      <VBox maxHeight="1.7976931348623157E308" BorderPane.alignment="CENTER">
+         <children>
+            <HBox fx:id="onlineUsersHbox" minHeight="-Infinity" minWidth="-Infinity" prefHeight="50.0" prefWidth="217.0" stylesheets="@../styles/ListViewStyle.css">
+               <children>
+                  <Label prefHeight="50.0" prefWidth="124.0" text="Online Friends:" textAlignment="CENTER" textFill="#dc5f00">
+                     <font>
+                        <Font name="Roboto" size="14.0" />
+                     </font>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                     <opaqueInsets>
+                        <Insets bottom="10.0" />
+                     </opaqueInsets>
+                  </Label>
+                  <Label fx:id="onlineCountLabel" prefHeight="48.0" prefWidth="59.0" text="0" textFill="#dc5f00">
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                     <font>
+                        <Font name="Roboto" size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+            <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="217.0" text="ADD FRIEND" />
+            <ListView fx:id="userList" focusTraversable="false" maxHeight="1.7976931348623157E308" prefHeight="495.0" prefWidth="217.0" style="-fx-border-image-width: 0;" stylesheets="@../styles/ListViewStyle.css">
+            </ListView>
+         </children>
+      </VBox>
+   </left>
+   <top>
+      <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: #031c30;" BorderPane.alignment="CENTER">
+         <center>
+            <GridPane prefHeight="120.0" prefWidth="1157.0" BorderPane.alignment="CENTER">
+              <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="342.4285888671875" minWidth="10.0" prefWidth="17.428556442260742" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="342.4285888671875" minWidth="0.0" prefWidth="91.00000381469725" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="852.1428397042409" minWidth="10.0" prefWidth="130.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="852.1428397042409" minWidth="10.0" prefWidth="708.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="100.5714111328125" minWidth="10.0" prefWidth="45.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="66.85717773437511" minWidth="10.0" prefWidth="47.28571428571422" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <ComboBox fx:id="statusComboBox" prefHeight="25.0" prefWidth="101.0" promptText="Online" stylesheets="@../styles/ComboBox.css" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.rowSpan="3">
+                     <items>
+                        <FXCollections fx:factory="observableArrayList">
+                           <String fx:value="Online" />
+                           <String fx:value="Away" />
+                           <String fx:value="Busy" />
+                        </FXCollections>
+                     </items>
+                  </ComboBox>
+                  <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.rowSpan="4">
+                     <image>
+                        <Image url="@../images/default.png" />
+                     </image>
+                  </ImageView>
+                  <Label fx:id="usernameLabel" alignment="TOP_CENTER" contentDisplay="CENTER" text="papcaii" textAlignment="CENTER" textFill="WHITE" textOverrun="CENTER_ELLIPSIS" GridPane.columnIndex="2" GridPane.rowSpan="3">
+                     <font>
+                        <Font name="Roboto" size="14.0" />
+                     </font>
+                  </Label>
+                  <ImageView fx:id="userImageView1" fitHeight="60.0" fitWidth="489.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowSpan="4" GridPane.valignment="CENTER">
+                     <image>
+                        <Image url="@../images/hust.png" />
+                     </image>
+                  </ImageView>
+                  <ImageView fitHeight="28.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true" styleClass="button" GridPane.columnIndex="4">
+                     <image>
+                        <Image url="@../images/settings.png" />
+                     </image>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </ImageView>
+                  <ImageView fitHeight="24.0" fitWidth="26.0" onMousePressed="#closeApplication" pickOnBounds="true" preserveRatio="true" styleClass="button" GridPane.columnIndex="5">
+                     <image>
+                        <Image url="@../images/close_normal.png" />
+                     </image>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </ImageView>
+               </children>
+            </GridPane>
+         </center>
+      </BorderPane>
+   </top>
+   <rotationAxis>
+      <Point3D />
+   </rotationAxis>
+</BorderPane>
