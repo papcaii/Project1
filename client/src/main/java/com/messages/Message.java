@@ -21,10 +21,6 @@ public class Message implements Serializable {
 
 
 // Getter
-    public byte[] getVoiceMsg() {
-        return voiceMsg;
-    }
-
     public String getPicture() {
         return picture;
     }

@@ -13,28 +13,20 @@ public class Message implements Serializable {
     private ArrayList<User> list;
     private ArrayList<User> users;
 
-    private Status status;
-    private byte[] voiceMsg;
-
-    public byte[] getVoiceMsg() {
-        return voiceMsg;
+	private byte[] voiceMsg;
+	private String picture;
+	public Message() {
     }
+    private Status status;
 
+
+// Getter
     public String getPicture() {
         return picture;
     }
 
-    private String picture;
-
-    public Message() {
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getMsg() {
@@ -42,22 +34,28 @@ public class Message implements Serializable {
         return msg;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public MessageType getType() {
+	public MessageType getType() {
         return type;
     }
 
-    public void setType(MessageType type) {
-        this.type = type;
+    public int getOnlineCount(){
+        return this.count;
     }
+
 
     public ArrayList<User> getUserlist() {
         return list;
     }
+    
+    public Status getStatus() {
+        return status;
+    }
+    
+    public ArrayList<User> getUsers() {
+        return users;
+    }
 
+// Setter
     public void setUserlist(HashMap<String, User> userList) {
         this.list = new ArrayList<>(userList.values());
     }
@@ -66,17 +64,8 @@ public class Message implements Serializable {
         this.count = count;
     }
 
-    public int getOnlineCount(){
-        return this.count;
-    }
-
     public void setPicture(String picture) {
         this.picture = picture;
-    }
-
-
-    public ArrayList<User> getUsers() {
-        return users;
     }
 
     public void setUsers(ArrayList<User> users) {
@@ -87,11 +76,21 @@ public class Message implements Serializable {
         this.status = status;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
     public void setVoiceMsg(byte[] voiceMsg) {
         this.voiceMsg = voiceMsg;
     }
+    
+    public void setType(MessageType type) {
+        this.type = type;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+
 }

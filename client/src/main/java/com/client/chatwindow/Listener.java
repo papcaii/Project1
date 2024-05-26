@@ -22,10 +22,13 @@ public class Listener implements Runnable{
     public int port;
     public static String username;
     public ChatController controller;
-    private static ObjectOutputStream oos;
+    
     private InputStream is;
+    private OutputStream os;
     private ObjectInputStream input;
-    private OutputStream outputStream;
+    private static ObjectOutputStream output;
+    
+    
     Logger logger = LoggerFactory.getLogger(Listener.class);
 
     public Listener(String hostname, int port, String username, String picture, ChatController controller) {
@@ -39,11 +42,16 @@ public class Listener implements Runnable{
     public void run() {
         try {
             socket = new Socket(hostname, port);
+            logger.info("Connection accepted " + socket.getInetAddress() + ":" + socket.getPort());
+            
             LoginController.getInstance().showScene();
-            outputStream = socket.getOutputStream();
-            oos = new ObjectOutputStream(outputStream);
+
+			os = socket.getOutputStream();
+            output = new ObjectOutputStream(os);
+
             is = socket.getInputStream();
             input = new ObjectInputStream(is);
+
         } catch (IOException e) {
             LoginController.getInstance().showErrorDialog("Could not connect to server");
             logger.error("Could not Connect");
@@ -51,19 +59,19 @@ public class Listener implements Runnable{
         logger.info("Connection accepted " + socket.getInetAddress() + ":" + socket.getPort());
 
         try {
+        	logger.info("connect() method call");
             connect();
             logger.info("Sockets in and out ready!");
             while (socket.isConnected()) {
                 Message message = null;
                 message = (Message) input.readObject();
+                
+                logger.info("get" + message.getMsg());
 
                 if (message != null) {
                     logger.debug("Message recieved:" + message.getMsg() + " MessageType:" + message.getType() + "Name:" + message.getName());
                     switch (message.getType()) {
                         case USER:
-                            controller.addToChat(message);
-                            break;
-                        case VOICE:
                             controller.addToChat(message);
                             break;
                         case SERVER:
@@ -97,8 +105,8 @@ public class Listener implements Runnable{
         createMessage.setStatus(Status.AWAY);
         createMessage.setMsg(msg);
         createMessage.setPicture(picture);
-        oos.writeObject(createMessage);
-        oos.flush();
+        output.writeObject(createMessage);
+        output.flush();
     }
 
     /* This method is used for sending a normal Message
@@ -110,8 +118,8 @@ public class Listener implements Runnable{
         createMessage.setType(MessageType.STATUS);
         createMessage.setStatus(status);
         createMessage.setPicture(picture);
-        oos.writeObject(createMessage);
-        oos.flush();
+        output.writeObject(createMessage);
+        output.flush();
     }
 
     /* This method is used to send a connecting message */
@@ -121,7 +129,7 @@ public class Listener implements Runnable{
         createMessage.setType(CONNECTED);
         createMessage.setMsg(HASCONNECTED);
         createMessage.setPicture(picture);
-        oos.writeObject(createMessage);
+        output.writeObject(createMessage);
     }
 
 }

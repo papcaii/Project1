@@ -2,9 +2,6 @@ package com.messages;
 
 import java.io.Serializable;
 
-/**
- * Created by Dominic on 01-May-16.
- */
 public class User implements Serializable {
 
 	String name;

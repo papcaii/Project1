@@ -80,15 +80,13 @@ public class ChatController implements Initializable {
             public HBox call() throws Exception {
             
             	// Load the profile image of the sender
-                Image image = new Image(getClass().getClassLoader().getResource("images/" + msg.getPicture().toLowerCase() + ".png").toString());
+                Image image = new Image(getClass().getClassLoader().getResource("images/default.png").toString());
                 ImageView profileImage = new ImageView(image);
                 profileImage.setFitHeight(32);
                 profileImage.setFitWidth(32);
                 
                 // Create a BubbledLabel for the message text
                 BubbledLabel bl6 = new BubbledLabel();
-				//System.out.println(msg.getName());
-                //System.out.println(msg.getMsg());
                 bl6.setText(msg.getName() + ": " + msg.getMsg());
                 bl6.setBackground(new Background(new BackgroundFill(Color.WHITE,null, null)));
                 
@@ -100,13 +98,10 @@ public class ChatController implements Initializable {
                 
                 // Update the online user count
                 setOnlineLabel(Integer.toString(msg.getOnlineCount()));
+                logger.info("Execute other message");
                 return x;
             }
         };
-
-        othersMessages.setOnSucceeded(event -> {
-            chatPane.getItems().add(othersMessages.getValue());
-        });
 
 		// Task to handle messages from the user
         Task<HBox> yourMessages = new Task<HBox>() {
@@ -131,7 +126,21 @@ public class ChatController implements Initializable {
                 return x;
             }
         };
-        yourMessages.setOnSucceeded(event -> chatPane.getItems().add(yourMessages.getValue()));
+        
+        // If task succeeded, add box to chat pane
+        othersMessages.setOnSucceeded(event -> {
+    		HBox messageBox = othersMessages.getValue();
+    		Platform.runLater(() -> {
+        		chatPane.getItems().add(messageBox);
+    		});
+		});
+        
+        yourMessages.setOnSucceeded(event -> {
+    		HBox messageBox = yourMessages.getValue();
+    		Platform.runLater(() -> {
+        		chatPane.getItems().add(messageBox);
+    		});
+		});
 
 		// Determine if the message is from the user or another user and start the corresponding task
         if (msg.getName().equals(usernameLabel.getText())) {
@@ -139,6 +148,7 @@ public class ChatController implements Initializable {
             t2.setDaemon(true);
             t2.start();
         } else {
+        	logger.info("Execute other message");
             Thread t = new Thread(othersMessages);
             t.setDaemon(true);
             t.start();
@@ -179,6 +189,7 @@ public class ChatController implements Initializable {
     }
 
     /* Method to display server messages */
+    
     public synchronized void addAsServer(Message msg) {
         Task<HBox> task = new Task<HBox>() {
             @Override

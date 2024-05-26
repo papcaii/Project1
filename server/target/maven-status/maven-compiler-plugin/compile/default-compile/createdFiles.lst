@@ -1,5 +1,5 @@
 com/server/Server$1.class
-com/server/Server$Handler.class
+com/server/Server$ClientHandler.class
 com/messages/MessageType.class
 com/messages/User.class
 com/server/Server.class
