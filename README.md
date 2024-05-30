@@ -1,34 +1,20 @@
-# JavaFx-SocketChat
+# Project 1
 
-A small application which using JavaFX for a GUI chat application.
+## Description
+A message app based on Java
 
-Currently in Development.
-<p align="center">
-<img src="https://github.com/DomHeal/JavaFX-Chat/blob/master/screenshots/Animation.gif?raw=true"/>
-</p>
-<p align="center">
-<img src="https://github.com/DomHeal/JavaFX-Chat/blob/master/screenshots/Animation3.gif?raw=true"/>
-</br>
-<img src="http://i.imgur.com/2UvHIJb.png"/>
-</p>
-Notifications using Tray-Notifications Library
-<p align="center">
-<img src="http://i.imgur.com/Ckww6DW.png"/>
-</p>
+## Requirement
+Please refer in [Requirement](Requirement.MD)
 
-<h3> To-Do </h3>
-<ul>
-  <li><strike>Multi-Client Support</strike></li>
-  <li><strike>Username Selection</strike></li>
-  <li><strike>MOTD on Connect</strike></li>
-  <li><strike>Connected Userlist</strike></li>
-  <li><strike>Basic Animation</strike></li>
-  <li>Profile Picture (<strike>Presets</strike> / Upload)</li>
-  <li><strike>Able to Set Status (Away / Busy / Online)</strike></li>
-  <li><strike>Voice Communication</strike></li>
-  <li>Sounds & External CSS</li>
-  <li>Server GUI</li>
-</ul>
+## Contributor
+| Student ID  | Student Name |
+| ------------- | ------------- |
+| 20225545 | Nguyễn Quang Hưng  |
+| 20225544  | Hạ Nhật Duy  |
 
-<h3> New Features! - Voice Messages </h3>
-<img src="https://github.com/DomHeal/JavaFX-Chat/blob/master/screenshots/voicemessage.png?raw=true"/>
+## Progress
+
+For now our progress will store in this [Docs](https://docs.google.com/document/d/11w4li3BwzRBDgchZ0EQYa_aQc2JgQEDFQK2WTC5q-9c/edit?usp=sharing) and [Overleaf](https://www.overleaf.com/project/6623cdf4acf3f13eca3c4486)
+
+Well, it will be deleted when this project is done
+
