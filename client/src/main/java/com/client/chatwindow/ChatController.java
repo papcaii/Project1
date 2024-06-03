@@ -3,8 +3,10 @@ package com.client.chatwindow;
 import java.io.*; 
 
 import com.client.login.MainLauncher;
+import com.client.login.LoginController;
 import com.messages.Message;
 import com.messages.MessageType;
+import com.messages.User;
 import com.messages.Status;
 import com.messages.User;
 import com.messages.bubble.BubbleSpec;
@@ -48,10 +50,10 @@ public class ChatController implements Initializable {
     @FXML private TextArea messageBox;
     @FXML private Label usernameLabel;
     @FXML private Label onlineCountLabel;
-    @FXML private ListView userList;
+    @FXML private ListView userListView;
     @FXML private ImageView userImageView;
     @FXML private Button recordBtn;
-    @FXML ListView chatPane;
+    @FXML private ListView chatPane;
     @FXML ListView statusList;
     @FXML BorderPane borderPane;
     @FXML ComboBox statusComboBox;
@@ -59,13 +61,31 @@ public class ChatController implements Initializable {
 
     private double xOffset;
     private double yOffset;
+    
+    public String currentTargetName = ""; 
+    public Listener listener;
+
+    private static ChatController instance;
+    
     Logger logger = LoggerFactory.getLogger(ChatController.class);
 
+    public ChatController() {
+        instance = this;
+    }
+
+    public static ChatController getInstance() {
+        return instance;
+    }
+
+	public void setUsernameLabel(String username) {
+        this.usernameLabel.setText(username);
+    }
 
     public void sendButtonAction() throws IOException {
         String msg = messageBox.getText();
         if (!messageBox.getText().isEmpty()) {
-            Listener.send(msg);
+            this.listener = LoginController.getInstance().listener;
+            this.listener.send(msg);
             messageBox.clear();
         }
     }
@@ -74,13 +94,15 @@ public class ChatController implements Initializable {
 	// When a new message add to chat
     public synchronized void addToChat(Message msg) {
     
+    	logger.info(msg.getPicture());
+    
     	// Task to handle messages from other users
         Task<HBox> othersMessages = new Task<HBox>() {
             @Override
             public HBox call() throws Exception {
             
             	// Load the profile image of the sender
-                Image image = new Image(getClass().getClassLoader().getResource("images/default.png").toString());
+                Image image = new Image(getClass().getClassLoader().getResource(msg.getPicture()).toString());
                 ImageView profileImage = new ImageView(image);
                 profileImage.setFitHeight(32);
                 profileImage.setFitWidth(32);
@@ -94,10 +116,11 @@ public class ChatController implements Initializable {
                 HBox x = new HBox();
                 bl6.setBubbleSpec(BubbleSpec.FACE_LEFT_CENTER);
                 x.getChildren().addAll(profileImage, bl6);
-                logger.debug("ONLINE USERS: " + Integer.toString(msg.getUserlist().size()));
+                logger.debug("ONLINE USERS: " + Integer.toString(msg.getUserList().size()));
                 
                 // Update the online user count
-                setOnlineLabel(Integer.toString(msg.getOnlineCount()));
+                int onlineCount = msg.getUserList().size();  // Assuming msg.getUsers() returns the list of users
+            	setOnlineLabel(String.valueOf(onlineCount));
                 logger.info("Execute other message");
                 return x;
             }
@@ -122,7 +145,7 @@ public class ChatController implements Initializable {
                 bl6.setBubbleSpec(BubbleSpec.FACE_RIGHT_CENTER);
                 x.getChildren().addAll(bl6, profileImage);
 
-                setOnlineLabel(Integer.toString(msg.getOnlineCount()));
+                setOnlineLabel(Integer.toString(msg.getUserList().size()));
                 return x;
             }
         };
@@ -155,10 +178,6 @@ public class ChatController implements Initializable {
         }
     }
     
-    
-    public void setUsernameLabel(String username) {
-        this.usernameLabel.setText(username);
-    }
 
 	// Change number of online user
     public void setOnlineLabel(String usercount) {
@@ -166,16 +185,30 @@ public class ChatController implements Initializable {
     }
 
     public void setUserList(Message msg) {
-        logger.info("setUserList() method Enter");
-        Platform.runLater(() -> {
-            ObservableList<User> users = FXCollections.observableList(msg.getUsers());
-            userList.setItems(users);
-            userList.setCellFactory(new CellRenderer());
-            setOnlineLabel(String.valueOf(msg.getUserlist().size()));
-        });
+        logger.info("setUserList() method Enter with");
+        
+    	Platform.runLater(() -> {
+        	try {
+        	
+        		// Update user list view
+            	ObservableList<User> usersList = FXCollections.observableList(msg.getUserList());
+            	userListView.setItems(usersList);
+            	userListView.setCellFactory(new CellRenderer());
+            
+            	// Update online number
+            	int onlineCount = msg.getUserList().size();  // Assuming msg.getUsers() returns the list of users
+            	setOnlineLabel(String.valueOf(onlineCount));
+            
+            	logger.info("User list updated successfully with " + onlineCount + " users.");
+        } catch (Exception e) {
+            	logger.error("Error updating user list", e);
+        }
+    });
         logger.info("setUserList() method Exit");
     }
 
+
+	// sendButtonAction
     public void sendMethod(KeyEvent event) throws IOException {
         if (event.getCode() == KeyCode.ENTER) {
             sendButtonAction();
@@ -234,6 +267,8 @@ public class ChatController implements Initializable {
             borderPane.setCursor(Cursor.DEFAULT);
         });
 
+		
+		/* track status changed
         statusComboBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 try {
@@ -243,6 +278,7 @@ public class ChatController implements Initializable {
                 }
             }
         });
+        */
 
         /* Added to prevent the enter from adding a new line to inputMessageBox */
         messageBox.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
@@ -255,33 +291,14 @@ public class ChatController implements Initializable {
                 ke.consume();
             }
         });
+        
+        // Add to track userListView
+        userListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<User>() {
+    		public void changed(ObservableValue<? extends User> observable, User oldUser, User newUser) {
+        		logger.info("ListView selection changed to newValue = " + newUser.getName());
+        		currentTargetName = newUser.getName();
+    		}
+		});
 
-    }
-
-    public void setImageLabel(String selectedPicture) {
-        switch (selectedPicture) {
-            case "Default":
-                this.userImageView.setImage(new Image(getClass().getClassLoader().getResource("images/default.png").toString()));
-                break;
-        }
-    }
-
-    public void logoutScene() {
-        Platform.runLater(() -> {
-            FXMLLoader fmxlLoader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
-            Parent window = null;
-            try {
-                window = (Pane) fmxlLoader.load();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Stage stage = MainLauncher.getPrimaryStage();
-            Scene scene = new Scene(window);
-            stage.setMaxWidth(350);
-            stage.setMaxHeight(420);
-            stage.setResizable(false);
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        });
     }
 }

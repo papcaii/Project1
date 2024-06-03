@@ -7,26 +7,32 @@ import java.util.HashMap;
 public class Message implements Serializable {
 
     private String name;
+    private String password;
     private MessageType type;
     private String msg;
-    private int count;
-    private ArrayList<User> list;
-    private ArrayList<User> users;
+    private int onlineCount;
+    private ArrayList<User> userList;
 
-	private byte[] voiceMsg;
-	private String picture;
+	private String picturePath;
+	private Status status;
+	
+	// Constructor
 	public Message() {
     }
-    private Status status;
+    
 
 
 // Getter
     public String getPicture() {
-        return picture;
+        return picturePath;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public String getMsg() {
@@ -38,48 +44,28 @@ public class Message implements Serializable {
         return type;
     }
 
-    public int getOnlineCount(){
-        return this.count;
-    }
 
-
-    public ArrayList<User> getUserlist() {
-        return list;
+    public ArrayList<User> getUserList() {
+        return userList;
     }
     
     public Status getStatus() {
         return status;
     }
-    
-    public ArrayList<User> getUsers() {
-        return users;
-    }
 
 // Setter
-    public void setUserlist(HashMap<String, User> userList) {
-        this.list = new ArrayList<>(userList.values());
-    }
-
-    public void setOnlineCount(int count){
-        this.count = count;
+    public void setUserlist(ArrayList<User> userList) {
+        this.userList = userList;
     }
 
     public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public void setUsers(ArrayList<User> users) {
-        this.users = users;
+        this.picturePath = picture;
     }
 
     public void setStatus(Status status) {
         this.status = status;
     }
 
-    public void setVoiceMsg(byte[] voiceMsg) {
-        this.voiceMsg = voiceMsg;
-    }
-    
     public void setType(MessageType type) {
         this.type = type;
     }
@@ -88,9 +74,14 @@ public class Message implements Serializable {
         this.name = name;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public void setMsg(String msg) {
         this.msg = msg;
     }
 
 
 }
+

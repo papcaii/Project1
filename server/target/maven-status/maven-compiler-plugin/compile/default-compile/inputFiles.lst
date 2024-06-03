@@ -1,6 +1,7 @@
-/home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/exception/DuplicateUsernameException.java
+/home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/exception/InvalidUserException.java
 /home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/messages/User.java
 /home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/server/Server.java
+/home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/database/DatabaseManager.java
 /home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/messages/Message.java
 /home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/messages/MessageType.java
 /home/papcaii/Documents/HUST/Project-1/HustChatApp/server/src/main/java/com/messages/Status.java

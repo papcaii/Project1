@@ -4,8 +4,8 @@
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -28,26 +28,26 @@
    </columnConstraints>
    <rowConstraints>
       <RowConstraints maxHeight="149.0" minHeight="10.0" prefHeight="39.9999885559082" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="149.0" minHeight="10.0" prefHeight="33.285718645368306" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="226.0" minHeight="10.0" prefHeight="61.4285670689174" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="37.42857578822546" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="28.00001307896204" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="32.14287022181918" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="26.428558349609375" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="34.142876761300215" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="36.42858014787947" />
-      <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="31.5714111328125" />
-      <RowConstraints maxHeight="126.0" minHeight="11.4285888671875" prefHeight="11.4285888671875" />
-      <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="44.71425955636164" />
-      <RowConstraints maxHeight="96.0" minHeight="10.0" prefHeight="30.285679408482167" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="149.0" minHeight="10.0" prefHeight="23.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="226.0" minHeight="10.0" prefHeight="62.5" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="38.5" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="34.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="31.5" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="12.5" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="60.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="22.0" />
+      <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="30.5" />
+      <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="32.0" />
+      <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="32.0" />
+            <RowConstraints maxHeight="126.0" minHeight="4.5" prefHeight="12.0" />
    </rowConstraints>
    <children>
-      <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="100.0" text="USERNAME:" textFill="#cd1627" GridPane.columnIndex="2" GridPane.rowIndex="4">
+      <Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="USERNAME:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="3">
          <font>
             <Font name="Roboto" size="12.0" />
          </font>
       </Label>
-      <TextField fx:id="usernameTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+      <TextField fx:id="usernameTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="3" />
       <StackPane prefHeight="87.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
       <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2">
          <GridPane.margin>
@@ -59,15 +59,15 @@
             <Font name="Montserrat Regular" size="18.0" />
          </font>
       </Label>
-      <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="99.0" text="PASSWORD:" textFill="#cd1627" GridPane.columnIndex="2" GridPane.rowIndex="6">
+      <Label alignment="BOTTOM_LEFT" contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="PASSWORD:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="4">
          <font>
             <Font name="Roboto" size="12.0" />
          </font>
       </Label>
-      <PasswordField fx:id="passwordField" prefHeight="25.0" prefWidth="284.0" GridPane.columnIndex="2" GridPane.rowIndex="7" />
-      <Button id="connectBtn" fx:id="confirmBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#confirmHandler" prefHeight="45.0" prefWidth="209.0" stylesheets="@../styles/Login.css" text="Register" GridPane.columnIndex="2" GridPane.rowIndex="11" />
-      <PasswordField fx:id="confirmPassField" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="9" />
-      <Label alignment="CENTER" prefHeight="17.0" prefWidth="100.0" text="CONFIRM PASS:" textFill="#cd1627" GridPane.columnIndex="2" GridPane.rowIndex="8">
+      <PasswordField fx:id="passwordTextfield" prefHeight="25.0" prefWidth="284.0" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+      <Button id="connectBtn" fx:id="confirmBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#confirmHandler" prefHeight="45.0" prefWidth="209.0" stylesheets="@../styles/Login.css" text="CONFIRM" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+      <PasswordField fx:id="confirmPassTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+      <Label alignment="BOTTOM_RIGHT" prefHeight="17.0" prefWidth="100.0" text="CONFIRM PASS:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="5">
          <font>
             <Font name="Roboto" size="12.0" />
          </font>
@@ -87,6 +87,23 @@
             <Image url="@../images/hust.png" />
          </image>
       </ImageView>
+            <Label alignment="BOTTOM_CENTER" contentDisplay="BOTTOM" prefHeight="17.0" prefWidth="99.0" text="Server Details" textFill="#cd1627" GridPane.columnIndex="2" GridPane.rowIndex="9">
+               <font>
+                  <Font name="Roboto" size="12.0" />
+               </font>
+            </Label>
+            <Label contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="PORT:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="11">
+               <font>
+                  <Font name="Roboto" size="12.0" />
+               </font>
+            </Label>
+            <Label contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="HOSTNAME:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="10">
+               <font>
+                  <Font name="Roboto" size="12.0" />
+               </font>
+            </Label>
+            <TextField fx:id="hostnameTextfield" prefHeight="25.0" prefWidth="215.0" text="localhost" GridPane.columnIndex="2" GridPane.rowIndex="10" />
+            <TextField fx:id="portTextfield" prefHeight="25.0" prefWidth="215.0" text="9001" GridPane.columnIndex="2" GridPane.rowIndex="11" />
    </children>
 </GridPane>
 </right>

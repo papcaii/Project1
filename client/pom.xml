@@ -104,6 +104,13 @@
         <artifactId>slf4j-simple</artifactId>
         <version>1.5.6</version>
     </dependency>
+    
+    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+	<dependency>
+    	<groupId>mysql</groupId>
+    	<artifactId>mysql-connector-java</artifactId>
+    	<version>8.0.33</version>
+	</dependency>
 
     <!-- JavaFX dependencies -->
     <dependency>
@@ -121,13 +128,6 @@
         <artifactId>javafx-media</artifactId>
         <version>21.0.2</version>
     </dependency>
-    
-    <!-- MySQL dependency -->
-    <dependency>
-		    <groupId>mysql</groupId>
-    		<artifactId>mysql-connector-java</artifactId>
-		    <version>8.0.19</version>
-		</dependency>
 </dependencies>
 
 </project>

@@ -46,9 +46,11 @@ public class LoginController implements Initializable {
     private double xOffset;
     private double yOffset;
     private Scene scene;
+    public Listener listener;
 
     private static LoginController instance;
 
+    // Default constructor for FXMLLoader
     public LoginController() {
         instance = this;
     }
@@ -56,24 +58,38 @@ public class LoginController implements Initializable {
     public static LoginController getInstance() {
         return instance;
     }
+
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
     
     /* 
     ** Login button handler
     */
-    public void loginButtonHandler() throws IOException {
+    public void loginButtonHandler() throws IOException, ClassNotFoundException {
+        
         String hostname = hostnameTextfield.getText();
         int port = Integer.parseInt(portTextfield.getText());
         String username = usernameTextfield.getText();
-        String picture = "";
+        String picture = "images/default.png";
         String password = passwordTextfield.getText();
 
-        FXMLLoader fmxlLoader = new FXMLLoader(getClass().getResource("/views/ChatView.fxml"));
-        Parent window = (Pane) fmxlLoader.load();
-        chatCon = fmxlLoader.<ChatController>getController();
-        Listener listener = new Listener(hostname, port, username, picture, chatCon);
-        Thread x = new Thread(listener);
-        x.start();
-        this.scene = new Scene(window);
+        if (this.listener == null) {
+            this.listener = new Listener(hostname, port);
+            Thread x = new Thread(listener);
+            x.start();
+        }
+
+        // Wait until the socket initialization is complete and the listener is ready
+        while (!listener.isReady()) {
+            try {
+                Thread.sleep(100); // Adjust this value as needed
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.listener.login(username, password);
     }
     
     /* 
@@ -81,14 +97,35 @@ public class LoginController implements Initializable {
     */
     public void registerButtonHandler() {
     	try {
+
+            if (this.listener == null) {
+                String hostname = hostnameTextfield.getText();
+                int port = Integer.parseInt(portTextfield.getText());
+                
+                this.listener = new Listener(hostname, port);
+                Thread x = new Thread(listener);
+                x.start();
+            }
+
+            // Wait until the socket initialization is complete and the listener is ready
+            while (!listener.isReady()) {
+                try {
+                    Thread.sleep(100); // Adjust this value as needed
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
         	FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/RegisterView.fxml"));
         	Parent window = fxmlLoader.load();
         	registerCon = fxmlLoader.getController();
+            registerCon.setListener(this.listener);
 
         	Stage stage = MainLauncher.getPrimaryStage();
         	Scene scene = new Scene(window);
         	stage.setScene(scene);
         	stage.centerOnScreen();
+
     	} catch (IOException e) {
         	e.printStackTrace();
         	// Consider logging the error or showing an alert to the user
@@ -110,24 +147,35 @@ public class LoginController implements Initializable {
         System.exit(0);
     }
 
-    public void showScene() throws IOException {
+    public void showChatScene() {
         Platform.runLater(() -> {
-            Stage stage = (Stage) hostnameTextfield.getScene().getWindow();
-            stage.setResizable(true);
-            stage.setWidth(1040);
-            stage.setHeight(620);
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/ChatView.fxml"));
+                Parent window = fxmlLoader.load();
+                this.scene = new Scene(window);
+                chatCon = fxmlLoader.<ChatController>getController();
+    
+                Stage stage = (Stage) hostnameTextfield.getScene().getWindow();
+                stage.setResizable(true);
+                stage.setWidth(1040);
+                stage.setHeight(620);
+    
+                stage.setOnCloseRequest((WindowEvent e) -> {
+                    Platform.exit();
+                    System.exit(0);
+                });
+                stage.setScene(this.scene);
+                stage.setMinWidth(800);
+                stage.setMinHeight(300);
+                ResizeHelper.addResizeListener(stage);
+                stage.centerOnScreen();
+                chatCon.setUsernameLabel(usernameTextfield.getText());
 
-            stage.setOnCloseRequest((WindowEvent e) -> {
-                Platform.exit();
-                System.exit(0);
-            });
-            stage.setScene(this.scene);
-            stage.setMinWidth(800);
-            stage.setMinHeight(300);
-            ResizeHelper.addResizeListener(stage);
-            stage.centerOnScreen();
-            chatCon.setUsernameLabel(usernameTextfield.getText());
-            //con.setImageLabel(selectedPicture.getText());
+                //con.setImageLabel(selectedPicture.getText());
+            } catch (IOException e) {
+                e.printStackTrace();
+                // You might want to show an alert or log this exception appropriately
+            }
         });
     }
     
@@ -159,7 +207,7 @@ public class LoginController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Warning!");
             alert.setHeaderText(message);
-            alert.setContentText("Please check for firewall issues and check if the server is running.");
+            alert.setContentText("Please check for server issues and check if the server is running.");
             alert.showAndWait();
         });
 

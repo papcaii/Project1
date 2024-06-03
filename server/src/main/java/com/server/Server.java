@@ -1,6 +1,7 @@
 package com.server;
 
-import com.exception.DuplicateUsernameException;
+import com.database.DatabaseManager;
+import com.exception.InvalidUserException;
 import com.messages.Message;
 import com.messages.MessageType;
 import com.messages.Status;
@@ -16,30 +17,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class Server {
 
-    /* Setting up variables */
     private static final int PORT = 9001;
     private static final HashMap<String, User> names = new HashMap<>();
-    private static HashSet<ObjectOutputStream> writers = new HashSet<>();
-    private static ArrayList<User> users = new ArrayList<>();
-    static Logger logger = LoggerFactory.getLogger(Server.class);
+    private static HashSet<ObjectOutputStream> writers = new HashSet<>();   // List of outputs to user
+    private static ArrayList<User> users = new ArrayList<>();               // List of user instance
+    public static Logger logger = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) throws Exception {
         logger.info("The chat server is running.");
-        ServerSocket listener = new ServerSocket(PORT);
-
-        try {
+        try (ServerSocket listener = new ServerSocket(PORT)) {
             while (true) {
                 new ClientHandler(listener.accept()).start();
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            listener.close();
         }
     }
-
 
     private static class ClientHandler extends Thread {
         private String name;
@@ -49,8 +49,10 @@ public class Server {
         
         private InputStream is;
         private OutputStream os;
-		private ObjectInputStream input;
-		private ObjectOutputStream output;
+        private ObjectInputStream input;
+        private ObjectOutputStream output;
+
+        private boolean isValid = false;
 
         public ClientHandler(Socket socket) throws IOException {
             this.socket = socket;
@@ -59,32 +61,60 @@ public class Server {
         public void run() {
             logger.info("Attempting to connect a user...");
             try {
-                is = socket.getInputStream();
-                input = new ObjectInputStream(is);
+                this.is = socket.getInputStream();
+                this.input = new ObjectInputStream(is);
 
-                os = socket.getOutputStream();
-                output = new ObjectOutputStream(os);
-				
-                Message firstMessage = (Message) input.readObject();
-                checkDuplicateUsername(firstMessage);
-                writers.add(output);
-                sendNotification(firstMessage);
+                this.os = socket.getOutputStream();
+                this.output = new ObjectOutputStream(os);
+
+                this.output.flush();
+                if (this.input != null) {
+                    logger.info("Input stream ready");
+                } else {
+                    logger.error("Failed to initialize input stream");
+                    return;
+                }
+
+                // Uncomment and complete this part to use the validation logic
+                /*
+                Message validateMessage = (Message) input.readObject();
+                this.isValid = validateClient(validateMessage);
+                if (!this.isValid) {
+                    logger.info("Invalid user, closing connection.");
+                    closeConnections();
+                    return;
+                }
+                writers.add(output);    // add to output list
+                sendNotification(validateMessage);
                 addToList();
+                */
 
-                while (socket.isConnected()) {
-                    Message inputmsg = (Message) input.readObject();
+                while (this.socket.isConnected()) {
+                    Message inputmsg = (Message) this.input.readObject();
                     if (inputmsg != null) {
                         logger.info(inputmsg.getType() + " - " + inputmsg.getName() + ": " + inputmsg.getMsg());
                         switch (inputmsg.getType()) {
                             case USER:
-                                write(inputmsg);
+                                sendMessageToTarget(this.output, inputmsg);
                                 break;
-                            case VOICE:
-                                write(inputmsg);
+                            case LOGIN:
+                                isValid = validateClient(inputmsg);
+                                if (isValid) {
+                                    user = new User();
+                                    user.setName(inputmsg.getName());
+                                    user.setStatus(Status.ONLINE);
+
+                                    users.add(user);                    // add user to list
+                                    names.put(user.getName(), user);    // add name to list
+                                    writers.add(this.output);           // add socket output to list
+
+                                    logger.info("New user: " + user.getName());
+                                }
                                 break;
-                            case CONNECTED:
-                                addToList();
+                            case REGISTER:
+                                registerClient(inputmsg);
                                 break;
+
                             case STATUS:
                                 changeStatus(inputmsg);
                                 break;
@@ -93,8 +123,8 @@ public class Server {
                 }
             } catch (SocketException socketException) {
                 logger.error("Socket Exception for user " + name);
-            } catch (DuplicateUsernameException duplicateException){
-                logger.error("Duplicate Username : " + name);
+            } catch (InvalidUserException duplicateException){
+                logger.error("Duplicate Username: " + name);
             } catch (Exception e){
                 logger.error("Exception in run() method for user: " + name, e);
             } finally {
@@ -103,7 +133,7 @@ public class Server {
         }
 
         private Message changeStatus(Message inputmsg) throws IOException {
-            logger.debug(inputmsg.getName() + " has changed status to  " + inputmsg.getStatus());
+            logger.debug(inputmsg.getName() + " has changed status to " + inputmsg.getStatus());
             Message msg = new Message();
             msg.setName(user.getName());
             msg.setType(MessageType.STATUS);
@@ -114,23 +144,122 @@ public class Server {
             return msg;
         }
 
-        private synchronized void checkDuplicateUsername(Message firstMessage) throws DuplicateUsernameException {
-            logger.info(firstMessage.getName() + " is trying to connect");
-            if (!names.containsKey(firstMessage.getName())) {
-                this.name = firstMessage.getName();
-                user = new User();
-                user.setName(firstMessage.getName());
-                user.setStatus(Status.ONLINE);
-                user.setPicture(firstMessage.getPicture());
+        private synchronized boolean validateClient(Message validateMessage) throws InvalidUserException {
+            boolean isValid = false;
 
-                users.add(user);
-                names.put(name, user);
+            logger.info(validateMessage.getName() + " is trying to connect with password " + validateMessage.getPassword());
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return false;
+                }
 
-                logger.info(name + " has been added to the list");
-            } else {
-                logger.error(firstMessage.getName() + " is already connected");
-                throw new DuplicateUsernameException(firstMessage.getName() + " is already connected");
+                try (PreparedStatement st = connection.prepareStatement(
+                        "SELECT user_name, password FROM User WHERE user_name=? AND password=?")) {
+                    st.setString(1, validateMessage.getName());
+                    st.setString(2, validateMessage.getPassword());
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            logger.info("Correct password");
+                            Message msg = new Message();
+                            msg.setType(MessageType.ACCEPTED);
+                            msg.setName("SERVER");
+                            sendMessageToTarget(this.output, msg);
+                            isValid = true;
+                        } else {
+                            logger.info("Incorrect password!");
+                            Message msg = new Message();
+                            msg.setMsg("Wrong username or password, please try again");
+                            msg.setType(MessageType.DECLINED);
+                            msg.setName("SERVER");
+                            sendMessageToTarget(this.output, msg);
+                        }
+                    }
+                }
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+            } finally {
+                logger.info("send response to client");
             }
+            return isValid;
+        }
+
+        private synchronized boolean registerClient(Message registerMessage) throws InvalidUserException {
+        
+            logger.info(registerMessage.getName() + " is trying to create an account with password " + registerMessage.getPassword());
+            boolean isValid = false;
+        
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return false;
+                }
+        
+                // Check if the username already exists
+                try (PreparedStatement st = connection.prepareStatement(
+                    "SELECT user_name FROM User WHERE user_name=?")) {
+                    st.setString(1, registerMessage.getName());
+        
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            logger.info("Username exists: " + registerMessage.getName());
+                            Message msg = new Message();
+                            msg.setMsg("User with name " + registerMessage.getName() + " already exists, please try login");
+                            msg.setType(MessageType.DECLINED);
+                            msg.setName("SERVER");
+                            sendMessageToTarget(this.output, msg);
+                            return false;
+                        }
+                    }
+                }
+        
+                // Insert the new user if the username does not exist
+                try (PreparedStatement st = connection.prepareStatement(
+                    "INSERT INTO User (user_name, password, is_online, create_datetime) VALUES (?, ?, ?, NOW())")) {
+                    st.setString(1, registerMessage.getName());
+                    st.setString(2, registerMessage.getPassword());
+                    st.setBoolean(3, false);
+        
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        logger.info("A new user has been inserted successfully: " + registerMessage.getName());
+                        Message msg = new Message();
+                        msg.setMsg("User with name " + registerMessage.getName() + " is created, please login to continue");
+                        msg.setType(MessageType.REGISTER_SUCCESS);
+                        msg.setName("SERVER");
+                        sendMessageToTarget(this.output, msg);
+                        return false;
+                    } else {
+                        logger.error("Failed to insert new user: " + registerMessage.getName());
+                        return false;
+                    }
+                }
+        
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+
+            } finally {
+                logger.info("registerClient() method exit");
+            }
+        
+            return isValid;
+        }
+
+        private void sendMessageToTarget(ObjectOutputStream target, Message msg) throws IOException {
+            target.writeObject(msg);
+            target.flush();
+            logger.info("Message sent to client: " + msg.getMsg());
         }
 
         private Message sendNotification(Message firstMessage) throws IOException {
@@ -143,83 +272,54 @@ public class Server {
             return msg;
         }
 
-
         private Message removeFromList() throws IOException {
             logger.debug("removeFromList() method Enter");
             Message msg = new Message();
             msg.setMsg("has left the chat.");
             msg.setType(MessageType.DISCONNECTED);
             msg.setName("SERVER");
-            msg.setUserlist(names);
+            msg.setUserlist(users);
             write(msg);
             logger.debug("removeFromList() method Exit");
             return msg;
         }
 
-        /*
-         * For displaying that a user has joined the server
-         */
         private Message addToList() throws IOException {
             Message msg = new Message();
             msg.setMsg("Welcome, You have now joined the server! Enjoy chatting!");
-            msg.setType(MessageType.CONNECTED);
+            msg.setType(MessageType.LOGIN);
             msg.setName("SERVER");
+            msg.setUserlist(users);
             write(msg);
             return msg;
         }
 
-        /*
-         * Creates and sends a Message type to the listeners.
-         */
         private void write(Message msg) throws IOException {
             for (ObjectOutputStream writer : writers) {
-                msg.setUserlist(names);
-                msg.setUsers(users);
-                msg.setOnlineCount(names.size());
                 writer.writeObject(msg);
                 writer.reset();
             }
         }
 
-        /*
-         * Once a user has been disconnected, we close the open connections and remove the writers
-         */
-        private synchronized void closeConnections()  {
+        private synchronized void closeConnections() {
             logger.debug("closeConnections() method Enter");
             logger.info("HashMap names:" + names.size() + " writers:" + writers.size() + " usersList size:" + users.size());
             if (name != null) {
                 names.remove(name);
                 logger.info("User: " + name + " has been removed!");
             }
-            if (user != null){
+            if (user != null) {
                 users.remove(user);
                 logger.info("User object: " + user + " has been removed!");
             }
-            if (output != null){
+            if (output != null) {
                 writers.remove(output);
-                logger.info("Writer object: " + user + " has been removed!");
+                logger.info("Writer object: " + output + " has been removed!");
             }
-            if (is != null){
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (os != null){
-                try {
-                    os.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (input != null){
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            closeQuietly(is);
+            closeQuietly(input);
+            closeQuietly(os);
+            closeQuietly(output);
             try {
                 removeFromList();
             } catch (Exception e) {
@@ -227,6 +327,17 @@ public class Server {
             }
             logger.info("HashMap names:" + names.size() + " writers:" + writers.size() + " usersList size:" + users.size());
             logger.debug("closeConnections() method Exit");
+        }
+
+        private void closeQuietly(Closeable closeable) {
+            if (closeable != null) {
+                try {
+                    closeable.close();
+                    logger.info(closeable.getClass().getSimpleName() + " closed.");
+                } catch (IOException e) {
+                    logger.error("Error closing " + closeable.getClass().getSimpleName() + ": " + e.getMessage(), e);
+                }
+            }
         }
     }
 }

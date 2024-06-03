@@ -1,5 +1,6 @@
 package com.client.register;
 
+import com.client.chatwindow.Listener;
 import com.client.login.MainLauncher;
 import com.client.chatwindow.ChatController;
 import com.client.login.LoginController;
@@ -37,9 +38,11 @@ public class RegisterController implements Initializable {
     @FXML private TextField usernameTextfield;
     @FXML private PasswordField passwordTextfield;
     @FXML private PasswordField confirmPasswordTextfield;
-    //@FXML private ChoiceBox imagePicker;
+    @FXML private TextField hostnameTextfield;
+    @FXML private TextField portTextfield;
     
     public static LoginController loginCon;
+    public static Listener listener;
     
     @FXML private BorderPane borderPane;
     private double xOffset;
@@ -56,20 +59,33 @@ public class RegisterController implements Initializable {
         return instance;
     }
     
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
     /* 
     ** Confirm button handler -> return to Login page
     */
-    public void confirmHandler() throws IOException {
+    public void confirmHandler() throws IOException, ClassNotFoundException {
         try {
+
+            String username = usernameTextfield.getText();
+            String picture = "images/default.png";
+            String password = passwordTextfield.getText();
+
+            this.listener.register(username, password);
+            /*
         	FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
         	Parent window = fxmlLoader.load();
         	loginCon = fxmlLoader.getController();
+            loginCon.setListener(this.listener);
 
         	Stage stage = MainLauncher.getPrimaryStage();
         	Scene scene = new Scene(window);
         	stage.setScene(scene);
         	stage.centerOnScreen();
-    	} catch (IOException e) {
+    	    */
+        } catch (IOException e) {
         	e.printStackTrace();
         	// Consider logging the error or showing an alert to the user
     	}
