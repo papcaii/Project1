@@ -30,33 +30,6 @@ Please refer to the [Requirement](Requirement.MD) document.
 ### Set up Database
 1. **Using Docker Compose**:
     - Ensure Docker and Docker Compose are installed on your machine.
-    - Create a `docker-compose.yml` file with the following content:
-    ```yaml
-    version: '3.7'
-    services:
-      mysql_db_container:
-        image: mysql:latest
-        volumes:
-          - mysql-data:/var/lib/mysql
-        restart: always
-        environment:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: "mysql"
-          MYSQL_USER: "papcaii"
-          MYSQL_PASSWORD: "123456"
-        ports:
-          - 3307:3306
-      adminer:
-        image: adminer
-        environment:
-            ADMINER_DEFAULT_SERVER: mysql_db_container
-        restart: always
-        ports:
-          - 8081:8080
-
-    volumes:
-      mysql-data:
-    ```
     - Run the following command in the directory containing the `docker-compose.yml` file:
     ```bash
     docker-compose up -d
