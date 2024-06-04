@@ -32,10 +32,11 @@
       <RowConstraints maxHeight="226.0" minHeight="10.0" prefHeight="62.5" vgrow="SOMETIMES" />
       <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="38.5" vgrow="SOMETIMES" />
             <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="34.0" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="31.5" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="12.5" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="60.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="22.0" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="18.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="142.14283534458704" minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="142.14283534458704" minHeight="1.0" prefHeight="8.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="31.0" />
       <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="30.5" />
       <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="32.0" />
       <RowConstraints maxHeight="126.0" minHeight="12.0" prefHeight="32.0" />
@@ -66,7 +67,7 @@
       </Label>
       <PasswordField fx:id="passwordTextfield" prefHeight="25.0" prefWidth="284.0" GridPane.columnIndex="2" GridPane.rowIndex="4" />
       <Button id="connectBtn" fx:id="confirmBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#confirmHandler" prefHeight="45.0" prefWidth="209.0" stylesheets="@../styles/Login.css" text="CONFIRM" GridPane.columnIndex="2" GridPane.rowIndex="7" />
-      <PasswordField fx:id="confirmPassTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+      <PasswordField fx:id="confirmTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="5" />
       <Label alignment="BOTTOM_RIGHT" prefHeight="17.0" prefWidth="100.0" text="CONFIRM PASS:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="5">
          <font>
             <Font name="Roboto" size="12.0" />
@@ -87,23 +88,24 @@
             <Image url="@../images/hust.png" />
          </image>
       </ImageView>
-            <Label alignment="BOTTOM_CENTER" contentDisplay="BOTTOM" prefHeight="17.0" prefWidth="99.0" text="Server Details" textFill="#cd1627" GridPane.columnIndex="2" GridPane.rowIndex="9">
+            <Label alignment="BOTTOM_CENTER" contentDisplay="BOTTOM" prefHeight="17.0" prefWidth="99.0" text="Server Details" textFill="#cd1627" GridPane.columnIndex="2" GridPane.rowIndex="10">
                <font>
                   <Font name="Roboto" size="12.0" />
                </font>
             </Label>
-            <Label contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="PORT:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="11">
+            <Label contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="PORT:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="12">
                <font>
                   <Font name="Roboto" size="12.0" />
                </font>
             </Label>
-            <Label contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="HOSTNAME:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="10">
+            <Label contentDisplay="CENTER" prefHeight="17.0" prefWidth="87.0" text="HOSTNAME:" textFill="#cd1627" GridPane.columnSpan="2" GridPane.rowIndex="11">
                <font>
                   <Font name="Roboto" size="12.0" />
                </font>
             </Label>
-            <TextField fx:id="hostnameTextfield" prefHeight="25.0" prefWidth="215.0" text="localhost" GridPane.columnIndex="2" GridPane.rowIndex="10" />
-            <TextField fx:id="portTextfield" prefHeight="25.0" prefWidth="215.0" text="9001" GridPane.columnIndex="2" GridPane.rowIndex="11" />
+            <TextField fx:id="hostnameTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="11" />
+            <TextField fx:id="portTextfield" prefHeight="25.0" prefWidth="215.0" GridPane.columnIndex="2" GridPane.rowIndex="12" />
+            <Button id="connectBtn" fx:id="returnBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#returnHandler" prefHeight="45.0" prefWidth="209.0" text="RETURN" GridPane.columnIndex="2" GridPane.rowIndex="9" />
    </children>
 </GridPane>
 </right>

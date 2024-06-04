@@ -75,26 +75,15 @@ public class Server {
                     return;
                 }
 
-                // Uncomment and complete this part to use the validation logic
-                /*
-                Message validateMessage = (Message) input.readObject();
-                this.isValid = validateClient(validateMessage);
-                if (!this.isValid) {
-                    logger.info("Invalid user, closing connection.");
-                    closeConnections();
-                    return;
-                }
-                writers.add(output);    // add to output list
-                sendNotification(validateMessage);
-                addToList();
-                */
-
                 while (this.socket.isConnected()) {
                     Message inputmsg = (Message) this.input.readObject();
                     if (inputmsg != null) {
                         logger.info(inputmsg.getType() + " - " + inputmsg.getName() + ": " + inputmsg.getMsg());
                         switch (inputmsg.getType()) {
-                            case USER:
+                            case USER_MESSAGE:
+                                // inputmsg
+                                // targetOutput =  
+                                // sendMessageToTarget(
                                 sendMessageToTarget(this.output, inputmsg);
                                 break;
                             case LOGIN:
@@ -166,7 +155,7 @@ public class Server {
                             logger.info("Correct password");
                             Message msg = new Message();
                             msg.setType(MessageType.ACCEPTED);
-                            msg.setName("SERVER");
+                            msg.setName(validateMessage.getName());
                             sendMessageToTarget(this.output, msg);
                             isValid = true;
                         } else {
@@ -272,6 +261,7 @@ public class Server {
             return msg;
         }
 
+        // when an user logout
         private Message removeFromList() throws IOException {
             logger.debug("removeFromList() method Enter");
             Message msg = new Message();
@@ -284,6 +274,7 @@ public class Server {
             return msg;
         }
 
+        // when a new user login success
         private Message addToList() throws IOException {
             Message msg = new Message();
             msg.setMsg("Welcome, You have now joined the server! Enjoy chatting!");

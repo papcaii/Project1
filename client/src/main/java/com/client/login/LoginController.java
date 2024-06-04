@@ -147,6 +147,7 @@ public class LoginController implements Initializable {
         System.exit(0);
     }
 
+    // login success, change to chat scene controller
     public void showChatScene() {
         Platform.runLater(() -> {
             try {
@@ -169,6 +170,8 @@ public class LoginController implements Initializable {
                 stage.setMinHeight(300);
                 ResizeHelper.addResizeListener(stage);
                 stage.centerOnScreen();
+                
+                chatCon.setListener(this.listener);
                 chatCon.setUsernameLabel(usernameTextfield.getText());
 
                 //con.setImageLabel(selectedPicture.getText());

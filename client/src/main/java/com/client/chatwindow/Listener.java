@@ -20,8 +20,9 @@ public class Listener implements Runnable {
     private Socket socket;
     private String hostname;
     private int port;
-    private static String username;
-    private static String password;
+
+    private String username;
+    private String password;
 
     public ChatController chatCon;
     
@@ -50,13 +51,14 @@ public class Listener implements Runnable {
             socket = new Socket(this.hostname, this.port);
             logger.info("Connection accepted " + socket.getInetAddress() + ":" + socket.getPort());
             
+            // create input output stream
             this.os = socket.getOutputStream();
             this.output = new ObjectOutputStream(os);
 
             this.is = socket.getInputStream();
             this.input = new ObjectInputStream(is);
-
             this.output.flush();
+
             if (this.input != null) {
                 logger.info("Input stream ready");
             } else {
@@ -83,7 +85,7 @@ public class Listener implements Runnable {
                 if (message != null) {
                     logger.debug("Message recieved:" + message.getMsg() + " MessageType:" + message.getType() + "Name:" + message.getName());
                     switch (message.getType()) {
-                        case USER:
+                        case USER_MESSAGE:
                             chatCon.getInstance().addToChat(message);
                             break;
                         case SERVER:
@@ -100,6 +102,7 @@ public class Listener implements Runnable {
                             break;
                         case ACCEPTED:
                             this.isValid = true;
+                            this.username = message.getName();
                             logger.info("Successful login");
                             LoginController.getInstance().showChatScene();
                             break;
@@ -123,8 +126,9 @@ public class Listener implements Runnable {
      */
     public void send(String msg) throws IOException {
         Message createMessage = new Message();
-        createMessage.setName(username);
-        createMessage.setType(MessageType.USER);
+        createMessage.setName(this.username);
+        // createMessage.setTarget(conversationID);
+        createMessage.setType(MessageType.USER_MESSAGE);
         createMessage.setMsg(msg);
         createMessage.setPicture(picture);
         this.output.writeObject(createMessage);

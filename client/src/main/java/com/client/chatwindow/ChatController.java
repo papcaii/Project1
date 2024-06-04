@@ -77,6 +77,10 @@ public class ChatController implements Initializable {
         return instance;
     }
 
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
 	public void setUsernameLabel(String username) {
         this.usernameLabel.setText(username);
     }
@@ -84,7 +88,6 @@ public class ChatController implements Initializable {
     public void sendButtonAction() throws IOException {
         String msg = messageBox.getText();
         if (!messageBox.getText().isEmpty()) {
-            this.listener = LoginController.getInstance().listener;
             this.listener.send(msg);
             messageBox.clear();
         }

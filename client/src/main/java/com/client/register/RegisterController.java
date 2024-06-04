@@ -74,21 +74,30 @@ public class RegisterController implements Initializable {
             String password = passwordTextfield.getText();
 
             this.listener.register(username, password);
-            /*
-        	FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
-        	Parent window = fxmlLoader.load();
-        	loginCon = fxmlLoader.getController();
-            loginCon.setListener(this.listener);
 
-        	Stage stage = MainLauncher.getPrimaryStage();
-        	Scene scene = new Scene(window);
-        	stage.setScene(scene);
-        	stage.centerOnScreen();
-    	    */
         } catch (IOException e) {
         	e.printStackTrace();
         	// Consider logging the error or showing an alert to the user
     	}
+    }
+
+    public void returnHandler() throws IOException, ClassNotFoundException {
+        try {
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
+            Parent window = fxmlLoader.load();
+            loginCon = fxmlLoader.getController();
+            loginCon.setListener(this.listener);
+
+            Stage stage = MainLauncher.getPrimaryStage();
+            Scene scene = new Scene(window);
+            stage.setScene(scene);
+            stage.centerOnScreen();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Consider logging the error or showing an alert to the user
+        }
     }
     
     /* 
