@@ -112,17 +112,9 @@ public class Server {
                                 break;
                             case LOGIN:
                                 isValid = validateClient(inputmsg);
-                                if (isValid) {
-                                    TimeUnit time = TimeUnit.SECONDS;
-                                    time.sleep(2L);
-                                    
-                                    user = new User();
-                                    user.setName(inputmsg.getName());
-                                    user.setStatus(Status.ONLINE);
-                                    addToUserList(user);         // add socket output to list
-
-                                    logger.info("New user: " + user.getName());
-                                }
+                                User user = names.get(inputmsg.getName());
+                                user.setStatus(Status.ONLINE);
+                                logger.info(user.getName()+"login now");
                                 break;
                             case REGISTER:
                                 registerClient(inputmsg);
@@ -254,6 +246,21 @@ public class Server {
                         msg.setType(MessageType.REGISTER_SUCCESS);
                         msg.setName("SERVER");
                         sendMessageToTarget(this.output, msg);
+                        User user= new User();
+                        user.setName(registerMessage.getName());
+                        user.setStatus(Status.ONLINE);
+                        int getID=-1;
+                        try (PreparedStatement stToGetId = connection.prepareStatement(
+                                "SELECT user_id FROM User WHERE user_name = ?")){
+                        	stToGetId.setString(1, user.getName());
+                        	try(ResultSet rsToGetId=stToGetId.executeQuery()){
+                        		if (rsToGetId.next()) {
+                        			getID=rsToGetId.getInt("user_id");
+                        		}
+                        	}
+                        }
+                        user.setID(getID);
+                        addToUserList(user);
                         return false;
                     } else {
                         logger.error("Failed to insert new user: " + registerMessage.getName());
@@ -272,6 +279,114 @@ public class Server {
             }
         
             return isValid;
+        }
+        
+        // Add friend and create conversation 
+        private synchronized boolean validateRequest(Message validateMessage) throws InvalidUserException {
+            boolean isValid = false;
+            
+            User user1=names.get(validateMessage.getName());
+            User user2=names.get(validateMessage.getMsg());
+            
+            //Check user2 exist
+            if (user2.equals(null)) return false;
+            
+            logger.info(user1.getName() + " is trying to add friend with client " + user2.getName());
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return false;
+                }
+                //check freindship
+                try (PreparedStatement st=connection.prepareStatement(
+            		"SELECT user1_id, user2_id FROM Friendship WHERE user1_id=? && user2_id=?")){
+            		
+            		st.setLong(1, Math.min(user1.getID(), user2.getID()));
+            		st.setLong(2, Math.max(user1.getID(), user2.getID()));
+            		
+            		try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            logger.info("Friendship exists between: " + user1.getName() + " and " + user2.getName());
+                            Message msg = new Message();
+                            msg.setMsg("Friendship exist");
+                            msg.setType(MessageType.S_FRIEND_REQUEST);
+                            msg.setName("SERVER");
+                            sendMessageToTarget(this.output, msg);
+                            return false;
+                        }
+                        else {
+                        	try (PreparedStatement InsertFriendShip = connection.prepareStatement(
+                                     "INSERT INTO Friendship (user1_id, user2_id, create_datetime) VALUES (?, ?, NOW())")) {
+                        		InsertFriendShip.setLong(1, Math.min(user1.getID(), user2.getID()));
+                        		InsertFriendShip.setLong(2, Math.max(user1.getID(), user2.getID()));
+                        		
+                        		createConversation(new ArrayList<User>() {{add(user1);add(user2);}});
+                        	}
+                        	return true;
+                        }
+                    }
+            	}
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+            } finally {
+                logger.info("send response to client");
+            }
+            return isValid;
+        }
+        
+        
+        private synchronized boolean createConversation(ArrayList<User> userList) throws InvalidUserException {
+            
+            logger.info("Server is trying to create a conversation range " +userList.size()+" users include:");
+            for (User user:userList) {
+            	logger.info(user.getName());
+            }
+        
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return false;
+                }
+        
+                // Insert the new conversation 
+                try (PreparedStatement st = connection.prepareStatement(
+                    "INSERT INTO Converssation (is_group, create_datetime, group_member) VALUES (0, NOW(), 2)")) {
+        
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        logger.info("A new conversation between "+userList.get(0).getName()+
+                        		" and "+userList.get(1).getName()+" has been inserted successfully");
+                        Message msg = new Message();
+                        msg.setMsg("Conversation between "+userList.get(0).getName()+" and "+userList.get(1).getName()+" is created, please return to continue");
+                        msg.setType(MessageType.S_FRIEND_REQUEST);
+                        msg.setName("SERVER");
+                        sendMessageToTarget(this.output, msg);
+                        return false;
+                    } else {
+                        logger.error("Failed to insert new conversation from: " + userList.get(0).getName());
+                        return false;
+                    }
+                }
+        
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+
+            } finally {
+                logger.info("registerClient() method exit");
+            }
+        
+            return true;
         }
 
         private void sendMessageToTarget(ObjectOutputStream target, Message msg) throws IOException {

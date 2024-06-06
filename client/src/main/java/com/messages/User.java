@@ -5,12 +5,21 @@ import java.util.ArrayList;
 
 public class User implements Serializable {
 
+	int ID;
 	String name;
     String picture;
     Status status;
     ArrayList <Conversation> conversations;
 
-    public String getName() {
+    public int getID() {
+		return ID;
+	}
+
+	public void setID(int iD) {
+		ID = iD;
+	}
+
+	public String getName() {
         return name;
     }
     

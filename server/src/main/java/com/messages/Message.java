@@ -11,7 +11,6 @@ public class Message implements Serializable {
     private int targetConversationID;
     private MessageType type;
     private String msg;
-    private int onlineCount;
     private ArrayList<User> userList;
 
 	private String picturePath;

@@ -13,5 +13,6 @@ public enum MessageType {
     DECLINED, 
     REGISTER, 
     REGISTER_SUCCESS,
-    UPDATE_USER
+    UPDATE_USER,  
+    S_FRIEND_REQUEST
 }
