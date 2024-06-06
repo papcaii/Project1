@@ -37,25 +37,25 @@ public class RegisterController implements Initializable {
     @FXML private ImageView Defaultview;
     @FXML private TextField usernameTextfield;
     @FXML private PasswordField passwordTextfield;
-    @FXML private PasswordField confirmPasswordTextfield;
+    @FXML private PasswordField confirmTextfield;
     @FXML private TextField hostnameTextfield;
     @FXML private TextField portTextfield;
     
-    public static LoginController loginCon;
-    public static Listener listener;
+    public LoginController loginCon;
+    public Listener listener;
     
     @FXML private BorderPane borderPane;
     private double xOffset;
     private double yOffset;
     private Scene scene;
 
-    private static RegisterController instance;
+    private RegisterController instance;
 
     public RegisterController() {
         instance = this;
     }
 
-    public static RegisterController getInstance() {
+    public RegisterController getInstance() {
         return instance;
     }
     
@@ -80,6 +80,24 @@ public class RegisterController implements Initializable {
             String username = usernameTextfield.getText();
             String picture = "images/default.png";
             String password = passwordTextfield.getText();
+            String confirmPassword = confirmTextfield.getText();
+
+            // Check if any of the required fields are empty
+            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                LoginController.showErrorDialog("Please fill in all required fields.");
+                return;
+            }
+
+            // Check if passwords match
+            if (!password.equals(confirmPassword)) {
+                LoginController.showErrorDialog("Passwords do not match. Please try again.");
+                return;
+            }
+
+            // Prompt user for confirmation
+            if (!LoginController.showConfirmationDialog("Do you want to proceed with the registration?")) {
+                return;
+            }
 
             this.listener.register(username, password);
 

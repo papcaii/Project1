@@ -31,7 +31,7 @@ public class Listener implements Runnable {
     private ObjectInputStream input;
     private ObjectOutputStream output;
 
-    private boolean socketReady;
+    private boolean socketReady = false;
     private boolean isValid; 
     
     public static Logger logger = LoggerFactory.getLogger(Listener.class);
@@ -53,6 +53,13 @@ public class Listener implements Runnable {
     public void run() {
         try {
             socket = new Socket(this.hostname, this.port);
+
+            if (socket == null) {
+                logger.error("Failed to create socket connection to " + this.hostname + ":" + this.port);
+                LoginController.getInstance().showErrorDialog("Could not connect to server");
+                return;
+            }
+
             logger.info("Connection accepted " + socket.getInetAddress() + ":" + socket.getPort());
             
             // create input output stream
@@ -61,22 +68,28 @@ public class Listener implements Runnable {
 
             this.is = socket.getInputStream();
             this.input = new ObjectInputStream(is);
-            this.output.flush();
 
             if (this.input != null) {
                 logger.info("Input stream ready");
+                this.socketReady = true;
             } else {
                 logger.error("Failed to initialize input stream");
+                LoginController.getInstance().showErrorDialog("Failed to initialize input stream");
+                close();
                 return;
             }
-            this.socketReady = true;
+            
 
         } catch (IOException e) {
             LoginController.getInstance().showErrorDialog("Could not connect to server");
             logger.error("Could not Connect");
+            close();
+            return;
         } catch (NullPointerException e) {
             LoginController.getInstance().showErrorDialog("Could not get output stream");
             logger.error("Could not get output stream");
+            close();
+            return;
         }
 
         try {
@@ -195,6 +208,50 @@ public class Listener implements Runnable {
         } catch (Exception e) {
             logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
             throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+
+    /* This method is used to validate a user registration(server will create new user in db) */
+    public void addFriend(String username) throws IOException, ClassNotFoundException {
+        logger.info("addFriend() method enter");
+
+        try {
+            Message friendRequestMessage = new Message();
+            friendRequestMessage.setName(username);
+            friendRequestMessage.setPassword(password);
+            friendRequestMessage.setType(MessageType.REGISTER);
+            this.output.writeObject(friendRequestMessage);
+            this.output.flush();
+            logger.debug("Sent friendRequest message: " + friendRequestMessage);
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+
+    public void close() {
+        try {
+        if (this.input != null) {
+            this.input.close();
+        }
+        if (this.is != null) {
+            this.is.close();
+        }
+        if (this.output != null) {
+            this.output.close();
+        }
+        if (this.os != null) {
+            this.os.close();
+        }
+        if (this.socket != null) {
+            this.socket.close();
+        }
+        } catch (IOException e) {
+            logger.error("Failed to close resources", e);
         }
     }
 }
