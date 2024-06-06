@@ -119,6 +119,8 @@ public class Listener implements Runnable {
                         case UPDATE_USER:
                             chatCon.getInstance().setUserListView(message);
                             break;
+                        case S_FRIEND_REQUEST:
+                        	
                     }
                 }
             }

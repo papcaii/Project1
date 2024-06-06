@@ -10,7 +10,6 @@ public class Message implements Serializable {
     private String password;
     private MessageType type;
     private String msg;
-    private int onlineCount;
     private ArrayList<User> userList;
 
 	private String picturePath;

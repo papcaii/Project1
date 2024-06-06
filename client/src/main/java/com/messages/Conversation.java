@@ -7,8 +7,9 @@ public class Conversation {
 	private ArrayList<User> members;
 	private boolean isGroup;
 	private User groupMaster;
-	public Conversation(ArrayList<User> members, boolean isGroup, User groupMaster) {
+	public Conversation(int conversationId, ArrayList<User> members, boolean isGroup, User groupMaster) {
 		super();
+		this.conversationId=conversationId;
 		this.isGroup = isGroup;
 		this.members = members;
 		this.groupMaster = groupMaster;

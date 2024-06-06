@@ -1,36 +1,54 @@
 package com.messages;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
 
 public class User implements Serializable {
 
-    public String getName() {
+	int ID;
+	String name;
+    String picture;
+    Status status;
+    ArrayList <Conversation> conversations;
+
+    public int getID() {
+		return ID;
+	}
+
+	public void setID(int iD) {
+		ID = iD;
+	}
+
+	public String getName() {
         return name;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    String name;
-
+    
     public String getPicture() {
         return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
     }
 
     public Status getStatus() {
         return status;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
     public void setStatus(Status status) {
         this.status = status;
     }
+    
+    public ArrayList<Conversation> getConversations() {
+		return conversations;
+	}
 
-    String picture;
-    Status status;
+	public void addConversation(Conversation con) {
+    	this.conversations.add(con);
+    }
+
 }
