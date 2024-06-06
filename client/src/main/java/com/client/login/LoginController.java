@@ -30,6 +30,7 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class LoginController implements Initializable {
@@ -70,33 +71,75 @@ public class LoginController implements Initializable {
     public void setPortTextfield(String port) {
         this.portTextfield.setText(port);
     }
+
+    public void setupListener() {
+        String hostname = hostnameTextfield.getText();
+        int port;
+        
+        // Validate and parse port number
+        try {
+            port = Integer.parseInt(portTextfield.getText());
+        } catch (NumberFormatException e) {
+            showErrorDialog("Invalid port number. Please enter a valid integer.");
+            return;
+        }
+
+        String username = usernameTextfield.getText();
+        String picture = "images/default.png";
+        String password = passwordTextfield.getText();
+
+        // Check if any of the required fields are empty
+        if (hostname.isEmpty()) {
+            showErrorDialog("Please fill in all required fields.");
+            return;
+        }
+
+        this.listener = new Listener(hostname, port);
+        Thread x = new Thread(listener);
+        x.start();
+
+        // Wait until the socket initialization is complete and the listener is ready
+        long startTime = System.currentTimeMillis();
+        long timeout = 3000; // 10 seconds timeout for connection
+
+        while (!listener.isReady()) {
+            if (System.currentTimeMillis() - startTime > timeout) {
+                showErrorDialog("Connection timed out. Please check your network settings and try again.");
+                listener.close(); // Ensure the listener thread is stopped
+                this.listener = null;
+                return;
+            }
+
+            try {
+                Thread.sleep(100); // Adjust this value as needed
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                showErrorDialog("An error occurred while attempting to connect.");
+                listener.close(); // Ensure the listener thread is stopped
+                this.listener = null;
+                return;
+            }
+        }
+    }
     
     /* 
     ** Login button handler
     */
     public void loginButtonHandler() throws IOException, ClassNotFoundException {
-        
-        String hostname = hostnameTextfield.getText();
-        int port = Integer.parseInt(portTextfield.getText());
+
         String username = usernameTextfield.getText();
         String picture = "images/default.png";
         String password = passwordTextfield.getText();
 
+        // Check if any of the required fields are empty
+        if (username.isEmpty() || password.isEmpty()) {
+            showErrorDialog("Please fill in all required fields.");
+            return;
+        }
+
         if (this.listener == null) {
-            this.listener = new Listener(hostname, port);
-            Thread x = new Thread(listener);
-            x.start();
+            setupListener();
         }
-
-        // Wait until the socket initialization is complete and the listener is ready
-        while (!listener.isReady()) {
-            try {
-                Thread.sleep(100); // Adjust this value as needed
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         this.listener.login(username, password);
     }
     
@@ -107,21 +150,7 @@ public class LoginController implements Initializable {
     	try {
 
             if (this.listener == null) {
-                String hostname = hostnameTextfield.getText();
-                int port = Integer.parseInt(portTextfield.getText());
-                
-                this.listener = new Listener(hostname, port);
-                Thread x = new Thread(listener);
-                x.start();
-            }
-
-            // Wait until the socket initialization is complete and the listener is ready
-            while (!listener.isReady()) {
-                try {
-                    Thread.sleep(100); // Adjust this value as needed
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                setupListener();
             }
 
         	FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/RegisterView.fxml"));
@@ -213,7 +242,7 @@ public class LoginController implements Initializable {
     }
 
     /* This displays an alert message to the user */
-    public void showErrorDialog(String message) {
+    public static void showErrorDialog(String message) {
         Platform.runLater(()-> {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Warning!");
@@ -222,5 +251,20 @@ public class LoginController implements Initializable {
             alert.showAndWait();
         });
 
+    }
+
+    public static boolean showConfirmationDialog(String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+    
+        ButtonType buttonYes = new ButtonType("Yes");
+        ButtonType buttonNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+    
+        alert.getButtonTypes().setAll(buttonYes, buttonNo);
+    
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == buttonYes;
     }
 }

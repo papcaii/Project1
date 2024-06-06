@@ -13,15 +13,11 @@ public class DatabaseManager {
 
    public static Connection getConnection() {
       try {
-         // The newInstance() call is a work around for some
-         // broken Java implementations
-
          Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
       } catch (Exception ex) {
          Server.logger.info("Can not register driver");
          // handle the error
-      }      
-      Server.logger.info("getConnection() method enter");
+      } 
       try {
          return DriverManager.getConnection(DATABASE_URL, DATABASE_USER_NAME, DATABASE_PASSWORD);
       } catch (SQLException ex) {
