@@ -31,13 +31,40 @@ public class Server {
     public static Logger logger = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) throws Exception {
-        logger.info("The chat server is running.");
+        logger.info("Starting the chat server...");
+
+        // Attempt to establish a connection to the database
+        if (testDatabaseConnection()) {
+            logger.info("Database connection established successfully.");
+        } else {
+            logger.error("Failed to connect to the database. Exiting...");
+            return;
+        }
+
+        // Start the server only if the database connection is successful
         try (ServerSocket listener = new ServerSocket(PORT)) {
+            logger.info("The chat server is running.");
             while (true) {
                 new ClientHandler(listener.accept()).start();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("An error occurred while running the server: " + e.getMessage(), e);
+        }
+    }
+
+    private static boolean testDatabaseConnection() {
+        Connection connection = null;
+        try {
+            connection = DatabaseManager.getConnection();
+            return connection != null; // Return true if connection is not null
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                logger.error("Error closing database connection: " + e.getMessage(), e);
+            }
         }
     }
 
@@ -81,9 +108,6 @@ public class Server {
                         logger.info(inputmsg.getType() + " - " + inputmsg.getName() + ": " + inputmsg.getMsg());
                         switch (inputmsg.getType()) {
                             case USER_MESSAGE:
-                                // inputmsg
-                                // targetOutput =  
-                                // sendMessageToTarget(
                                 sendMessageToTarget(this.output, inputmsg);
                                 break;
                             case LOGIN:
