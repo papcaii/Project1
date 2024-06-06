@@ -16,7 +16,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-
+import java.util.concurrent.TimeUnit;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -113,6 +113,9 @@ public class Server {
                             case LOGIN:
                                 isValid = validateClient(inputmsg);
                                 if (isValid) {
+                                	TimeUnit time = TimeUnit.SECONDS;
+                                	time.sleep(2L);
+                                	
                                     user = new User();
                                     user.setName(inputmsg.getName());
                                     user.setStatus(Status.ONLINE);
