@@ -63,6 +63,14 @@ public class RegisterController implements Initializable {
         this.listener = listener;
     }
 
+    public void setHostnameTextfield(String hostname) {
+        this.hostnameTextfield.setText(hostname);
+    }
+
+    public void setPortTextfield(String port) {
+        this.portTextfield.setText(port);
+    }
+
     /* 
     ** Confirm button handler -> return to Login page
     */
@@ -88,6 +96,8 @@ public class RegisterController implements Initializable {
             Parent window = fxmlLoader.load();
             loginCon = fxmlLoader.getController();
             loginCon.setListener(this.listener);
+            loginCon.setHostnameTextfield(this.hostnameTextfield.getText());
+            loginCon.setPortTextfield(this.portTextfield.getText());
 
             Stage stage = MainLauncher.getPrimaryStage();
             Scene scene = new Scene(window);
@@ -100,16 +110,12 @@ public class RegisterController implements Initializable {
         }
     }
     
-    /* 
-    ** Minimize handler
-    */
+    // Minimize handler
     public void minimizeWindow(){
         MainLauncher.getPrimaryStage().setIconified(true);
     }
 
-	/*
-	** Close handler
-	*/
+	// Close handler
     public void closeSystem(){
         Platform.exit();
         System.exit(0);

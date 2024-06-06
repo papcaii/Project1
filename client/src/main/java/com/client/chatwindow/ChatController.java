@@ -52,12 +52,10 @@ public class ChatController implements Initializable {
     @FXML private Label onlineCountLabel;
     @FXML private ListView userListView;
     @FXML private ImageView userImageView;
-    @FXML private Button recordBtn;
     @FXML private ListView chatPane;
     @FXML ListView statusList;
     @FXML BorderPane borderPane;
     @FXML ComboBox statusComboBox;
-    @FXML ImageView microphoneImageView;
 
     private double xOffset;
     private double yOffset;

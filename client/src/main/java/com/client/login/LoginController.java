@@ -62,6 +62,14 @@ public class LoginController implements Initializable {
     public void setListener(Listener listener) {
         this.listener = listener;
     }
+
+    public void setHostnameTextfield(String hostname) {
+        this.hostnameTextfield.setText(hostname);
+    }
+
+    public void setPortTextfield(String port) {
+        this.portTextfield.setText(port);
+    }
     
     /* 
     ** Login button handler
@@ -120,6 +128,8 @@ public class LoginController implements Initializable {
         	Parent window = fxmlLoader.load();
         	registerCon = fxmlLoader.getController();
             registerCon.setListener(this.listener);
+            registerCon.setHostnameTextfield(this.hostnameTextfield.getText());
+            registerCon.setPortTextfield(this.portTextfield.getText());
 
         	Stage stage = MainLauncher.getPrimaryStage();
         	Scene scene = new Scene(window);
@@ -132,16 +142,13 @@ public class LoginController implements Initializable {
     	}
 	}
     
-    /* 
-    ** Minimize handler
-    */
+    // Minimize handler
+
     public void minimizeWindow(){
         MainLauncher.getPrimaryStage().setIconified(true);
     }
 
-	/*
-	** Close handler
-	*/
+	// Close handler
     public void closeSystem(){
         Platform.exit();
         System.exit(0);
@@ -170,7 +177,7 @@ public class LoginController implements Initializable {
                 stage.setMinHeight(300);
                 ResizeHelper.addResizeListener(stage);
                 stage.centerOnScreen();
-                
+
                 chatCon.setListener(this.listener);
                 chatCon.setUsernameLabel(usernameTextfield.getText());
 
