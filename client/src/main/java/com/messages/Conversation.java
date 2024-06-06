@@ -3,14 +3,12 @@ package com.messages;
 import java.util.ArrayList;
 
 public class Conversation {
-	private static int numberId=0;
-	private int ConversationId;
+	private int conversationId;
 	private ArrayList<User> members;
 	private boolean isGroup;
 	private User groupMaster;
 	public Conversation(ArrayList<User> members, boolean isGroup, User groupMaster) {
 		super();
-		this.ConversationId=Conversation.numberId++;
 		this.isGroup = isGroup;
 		this.members = members;
 		this.groupMaster = groupMaster;
@@ -35,7 +33,7 @@ public class Conversation {
 		this.groupMaster = groupMaster;
 	}
 	public int getConversationId() {
-		return ConversationId;
+		return conversationId;
 	}
 	
 	
