@@ -1,4 +1,4 @@
-package com.client.register;
+package com.client.chatwindow;
 
 import com.client.chatwindow.Listener;
 import com.client.login.MainLauncher;
