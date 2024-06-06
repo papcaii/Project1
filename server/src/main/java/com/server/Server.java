@@ -116,10 +116,7 @@ public class Server {
                                     user = new User();
                                     user.setName(inputmsg.getName());
                                     user.setStatus(Status.ONLINE);
-
-                                    users.add(user);                    // add user to list
-                                    names.put(user.getName(), user);    // add name to list
-                                    writers.add(this.output);           // add socket output to list
+                                    addToUserList(user);         // add socket output to list
 
                                     logger.info("New user: " + user.getName());
                                 }
@@ -176,12 +173,16 @@ public class Server {
                     st.setString(2, validateMessage.getPassword());
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
+                            // Send this to allow this user to login
                             logger.info("Correct password");
                             Message msg = new Message();
                             msg.setType(MessageType.ACCEPTED);
                             msg.setName(validateMessage.getName());
                             sendMessageToTarget(this.output, msg);
                             isValid = true;
+
+                            // 
+
                         } else {
                             logger.info("Incorrect password!");
                             Message msg = new Message();
@@ -191,6 +192,7 @@ public class Server {
                             sendMessageToTarget(this.output, msg);
                         }
                     }
+                    return isValid;
                 }
             } catch (SQLException sqlException) {
                 logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
@@ -275,6 +277,14 @@ public class Server {
             logger.info("Message sent to client: " + msg.getMsg());
         }
 
+        private void sendMessageToAll(Message msg) throws IOException {
+            // loop through all users
+            for (ObjectOutputStream writer : writers) {
+                sendMessageToTarget(writer, msg);
+                writer.reset();
+            }
+        }
+
         private Message sendNotification(Message firstMessage) throws IOException {
             Message msg = new Message();
             msg.setMsg("has joined the chat.");
@@ -306,6 +316,20 @@ public class Server {
             msg.setName("SERVER");
             msg.setUserlist(users);
             write(msg);
+            return msg;
+        }
+
+        // when a new user login success
+        private Message addToUserList(User user) throws IOException {
+            users.add(user);                    // add user to list
+            names.put(user.getName(), user);    // add name to list
+            writers.add(this.output);  
+
+            Message msg = new Message();
+            msg.setType(MessageType.UPDATE_USER);
+            msg.setName("SERVER");
+            msg.setUserlist(users);
+            sendMessageToAll(msg);
             return msg;
         }
 

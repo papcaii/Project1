@@ -180,6 +180,7 @@ public class LoginController implements Initializable {
 
                 chatCon.setListener(this.listener);
                 chatCon.setUsernameLabel(usernameTextfield.getText());
+                this.listener.setChatController(chatCon);
 
                 //con.setImageLabel(selectedPicture.getText());
             } catch (IOException e) {
