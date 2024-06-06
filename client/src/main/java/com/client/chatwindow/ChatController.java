@@ -185,6 +185,31 @@ public class ChatController implements Initializable {
         Platform.runLater(() -> onlineCountLabel.setText(usercount));
     }
 
+    /*
+    public void setConversationListView(ArrayList conversationList) {
+        logger.info("setUserListView() method Enter with");
+        
+        Platform.runLater(() -> {
+            try {
+            
+                // Update user list view
+                ObservableList<User> observeConversationList = FXCollections.observableList(conversationList);
+                conversationListView.setItems(observeConversationList);
+                conversationListView.setCellFactory(new CellRenderer());
+            
+                // Update online number
+                int onlineCount = conversationList.size();  // Assuming msg.getUsers() returns the list of users
+                setOnlineLabel(String.valueOf(onlineCount));
+            
+                logger.info("User list updated successfully with " + onlineCount + " users.");
+        } catch (Exception e) {
+                logger.error("Error updating user list", e);
+        }
+    });
+        logger.info("setUserListView() method Exit");
+    }
+    */
+
     public void setUserListView(Message msg) {
         logger.info("setUserListView() method Enter with");
         

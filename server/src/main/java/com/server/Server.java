@@ -113,9 +113,9 @@ public class Server {
                             case LOGIN:
                                 isValid = validateClient(inputmsg);
                                 if (isValid) {
-                                	TimeUnit time = TimeUnit.SECONDS;
-                                	time.sleep(2L);
-                                	
+                                    TimeUnit time = TimeUnit.SECONDS;
+                                    time.sleep(2L);
+                                    
                                     user = new User();
                                     user.setName(inputmsg.getName());
                                     user.setStatus(Status.ONLINE);

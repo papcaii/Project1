@@ -8,6 +8,7 @@ public class Message implements Serializable {
 
     private String name;
     private String password;
+    private int targetConversationID;
     private MessageType type;
     private String msg;
     private int onlineCount;
@@ -33,6 +34,10 @@ public class Message implements Serializable {
 
     public String getPassword() {
         return password;
+    }
+
+    public int getTargetConversationID() {
+        return targetConversationID;
     }
 
     public String getMsg() {
@@ -76,6 +81,10 @@ public class Message implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setTargetConversationID(int targetConversationID) {
+        this.targetConversationID = targetConversationID;
     }
 
     public void setMsg(String msg) {
