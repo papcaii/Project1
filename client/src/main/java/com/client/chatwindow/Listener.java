@@ -42,6 +42,10 @@ public class Listener implements Runnable {
         this.port = port;
     }
 
+    public void setChatController(ChatController chatCon) {
+        this.chatCon = chatCon;
+    }
+
     public boolean isReady() {
         return this.socketReady;
     }
@@ -92,13 +96,13 @@ public class Listener implements Runnable {
                             chatCon.getInstance().addAsServer(message);
                             break;
                         case CONNECTED:
-                            chatCon.getInstance().setUserList(message);
+                            chatCon.getInstance().setUserListView(message);
                             break;
                         case DISCONNECTED:
-                            chatCon.getInstance().setUserList(message);
+                            chatCon.getInstance().setUserListView(message);
                             break;
                         case STATUS:
-                            chatCon.getInstance().setUserList(message);
+                            chatCon.getInstance().setUserListView(message);
                             break;
                         case ACCEPTED:
                             this.isValid = true;
@@ -112,7 +116,9 @@ public class Listener implements Runnable {
                         case REGISTER_SUCCESS:
                             LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
-
+                        case UPDATE_USER:
+                            chatCon.getInstance().setUserListView(message);
+                            break;
                     }
                 }
             }

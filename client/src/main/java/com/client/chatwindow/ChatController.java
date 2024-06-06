@@ -185,8 +185,8 @@ public class ChatController implements Initializable {
         Platform.runLater(() -> onlineCountLabel.setText(usercount));
     }
 
-    public void setUserList(Message msg) {
-        logger.info("setUserList() method Enter with");
+    public void setUserListView(Message msg) {
+        logger.info("setUserListView() method Enter with");
         
     	Platform.runLater(() -> {
         	try {
@@ -205,7 +205,7 @@ public class ChatController implements Initializable {
             	logger.error("Error updating user list", e);
         }
     });
-        logger.info("setUserList() method Exit");
+        logger.info("setUserListView() method Exit");
     }
 
 

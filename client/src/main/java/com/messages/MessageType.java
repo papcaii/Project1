@@ -12,5 +12,6 @@ public enum MessageType {
     ACCEPTED, 
     DECLINED, 
     REGISTER, 
-    REGISTER_SUCCESS
+    REGISTER_SUCCESS,
+    UPDATE_USER
 }

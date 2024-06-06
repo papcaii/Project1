@@ -16,7 +16,7 @@ public class DatabaseManager {
          // The newInstance() call is a work around for some
          // broken Java implementations
 
-         Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+         Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
       } catch (Exception ex) {
          Server.logger.info("Can not register driver");
          // handle the error
