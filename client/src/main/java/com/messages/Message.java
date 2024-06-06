@@ -6,7 +6,8 @@ import java.util.HashMap;
 
 public class Message implements Serializable {
 
-    private String name;
+	
+    private String sender;
     private String password;
     private MessageType type;
     private String msg;
@@ -28,7 +29,7 @@ public class Message implements Serializable {
     }
 
     public String getName() {
-        return name;
+        return sender;
     }
 
     public String getPassword() {
@@ -71,7 +72,7 @@ public class Message implements Serializable {
     }
     
     public void setName(String name) {
-        this.name = name;
+        this.sender = name;
     }
 
     public void setPassword(String password) {
