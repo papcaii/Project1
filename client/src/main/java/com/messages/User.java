@@ -1,12 +1,14 @@
 package com.messages;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class User implements Serializable {
 
 	String name;
     String picture;
     Status status;
+    ArrayList <Conversation> conversations;
 
     public String getName() {
         return name;
@@ -31,6 +33,13 @@ public class User implements Serializable {
     public void setStatus(Status status) {
         this.status = status;
     }
+    
+    public ArrayList<Conversation> getConversations() {
+		return conversations;
+	}
 
+	public void addConversation(Conversation con) {
+    	this.conversations.add(con);
+    }
 
 }
