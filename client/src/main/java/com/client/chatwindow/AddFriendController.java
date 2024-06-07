@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.scene.layout.BorderPane;
 
 import java.io.IOException;
 import java.net.URL;
@@ -73,13 +74,17 @@ public class AddFriendController implements Initializable {
     public void returnHandler() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/ChatView.fxml"));
-            Parent window = fxmlLoader.load();
+            BorderPane window = fxmlLoader.load();
             chatCon = fxmlLoader.getController();
             chatCon.setListener(listener);
 
             Stage stage = MainLauncher.getPrimaryStage();
             Scene scene = new Scene(window);
             stage.setScene(scene);
+
+            // Set stage size to match scene size
+            stage.setWidth(window.getPrefWidth());
+            stage.setHeight(window.getPrefHeight());
             stage.centerOnScreen();
 
         } catch (IOException e) {

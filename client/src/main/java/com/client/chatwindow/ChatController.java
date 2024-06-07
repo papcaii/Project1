@@ -63,7 +63,8 @@ public class ChatController implements Initializable {
     public String currentTargetName = ""; 
     public Listener listener;
 
-    private static ChatController instance;
+    private ChatController instance;
+    private AddFriendController addFriendCon;
     
     Logger logger = LoggerFactory.getLogger(ChatController.class);
 
@@ -71,7 +72,7 @@ public class ChatController implements Initializable {
         instance = this;
     }
 
-    public static ChatController getInstance() {
+    public ChatController getInstance() {
         return instance;
     }
 
@@ -91,6 +92,26 @@ public class ChatController implements Initializable {
         }
     }
 
+    public void addFriendHandler() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/AddFriendView.fxml"));
+            BorderPane window = fxmlLoader.load();
+            addFriendCon = fxmlLoader.getController();
+            addFriendCon.setListener(this.listener);
+
+            Stage stage = MainLauncher.getPrimaryStage();
+            Scene scene = new Scene(window);
+            stage.setScene(scene);
+
+            // Set stage size to match scene size
+            stage.setWidth(window.getPrefWidth());
+            stage.setHeight(window.getPrefHeight());
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Consider logging the error or showing an alert to the user
+        }
+    }
 
 	// When a new message add to chat
     public synchronized void addToChat(Message msg) {
