@@ -12,11 +12,7 @@ public class User implements Serializable {
     ArrayList <Conversation> conversations;
 
     public int getID() {
-		return ID;
-	}
-
-	public void setID(int iD) {
-		ID = iD;
+		return this.ID;
 	}
 
 	public String getName() {
@@ -29,6 +25,10 @@ public class User implements Serializable {
 
     public Status getStatus() {
         return status;
+    }
+
+    public void setID(int ID) {
+        this.ID = ID;
     }
 
     public void setName(String name) {

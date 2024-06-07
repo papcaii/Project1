@@ -53,19 +53,41 @@ public class Server {
     }
 
     private static boolean testDatabaseConnection() {
-        Connection connection = null;
-        try {
-            connection = DatabaseManager.getConnection();
-            return connection != null; // Return true if connection is not null
-        } finally {
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                logger.error("Error closing database connection: " + e.getMessage(), e);
+        try (Connection connection = DatabaseManager.getConnection()) {
+            logger.info("getConnection() exit");
+            if (connection != null) {
+                logger.info("Successfully connected to the database!");
+            } else {
+                logger.info("Cannot connect to database!");
+                return false;
             }
+            
+            // Check if the username already exists
+            try (PreparedStatement st = connection.prepareStatement(
+                "SELECT * FROM User")) {
+    
+                try (ResultSet rs = st.executeQuery()) {
+                    while (rs.next()) {
+                        // Retrieve user information from the ResultSet
+                        String username = rs.getString("user_name");
+                        int userID = rs.getInt("user_id");
+
+                        // Create a new User object
+                        User user = new User();
+                        user.setName(username);
+                        user.setID(userID);
+                        user.setStatus(Status.OFFLINE);
+
+                        // Store the user object in the HashMap with username as the key
+                        names.put(username, user);
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error closing database connection: " + e.getMessage(), e);
         }
+        return true;
     }
 
     private static class ClientHandler extends Thread {
@@ -112,9 +134,11 @@ public class Server {
                                 break;
                             case LOGIN:
                                 isValid = validateClient(inputmsg);
-                                User user = names.get(inputmsg.getName());
-                                user.setStatus(Status.ONLINE);
-                                logger.info(user.getName()+"login now");
+                                if (isValid) {
+                                    User user = names.get(inputmsg.getName());
+                                    user.setStatus(Status.ONLINE);
+                                    logger.info(user.getName()+"login now");
+                                }
                                 break;
                             case REGISTER:
                                 registerClient(inputmsg);
@@ -282,7 +306,7 @@ public class Server {
         }
         
         // Add friend and create conversation 
-        private synchronized boolean validateRequest(Message validateMessage) throws InvalidUserException {
+        private synchronized boolean validateFriendRequest(Message validateMessage) throws InvalidUserException {
             boolean isValid = false;
             
             User user1=names.get(validateMessage.getName());
