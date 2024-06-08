@@ -25,6 +25,7 @@ public class Listener implements Runnable {
     private String password;
 
     public ChatController chatCon;
+    public FriendRequestController friendRequestCon;
     
     private InputStream is;
     private OutputStream os;
@@ -44,6 +45,10 @@ public class Listener implements Runnable {
 
     public void setChatController(ChatController chatCon) {
         this.chatCon = chatCon;
+    }
+
+    public void setFriendRequestController(FriendRequestController friendRequestCon) {
+        this.friendRequestCon = friendRequestCon;
     }
 
     public boolean isReady() {
@@ -132,8 +137,9 @@ public class Listener implements Runnable {
                         case UPDATE_USER:
                             chatCon.getInstance().setUserListView(message);
                             break;
-                        case S_FRIEND_REQUEST:
-                        	
+                        case S_GET_FRIEND_REQUEST:
+                            friendRequestCon.getInstance().setUserListView(message.getUserList());
+                            break;
                     }
                 }
             }
@@ -220,8 +226,7 @@ public class Listener implements Runnable {
         try {
             Message friendRequestMessage = new Message();
             friendRequestMessage.setName(username);
-            friendRequestMessage.setPassword(password);
-            friendRequestMessage.setType(MessageType.REGISTER);
+            friendRequestMessage.setType(MessageType.C_FRIEND_REQUEST);
             this.output.writeObject(friendRequestMessage);
             this.output.flush();
             logger.debug("Sent friendRequest message: " + friendRequestMessage);
@@ -233,6 +238,24 @@ public class Listener implements Runnable {
             logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
             throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
         }
+    }
+
+    public void getFriendRequest() throws IOException {
+        try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setType(MessageType.C_GET_FRIEND_REQUEST);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+
     }
 
     public void close() {

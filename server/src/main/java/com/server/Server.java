@@ -3,6 +3,7 @@ package com.server;
 import com.database.DatabaseManager;
 import com.exception.InvalidUserException;
 import com.messages.Message;
+import com.messages.Conversation;
 import com.messages.MessageType;
 import com.messages.Status;
 import com.messages.User;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +28,7 @@ public class Server {
 
     private static final int PORT = 9001;
     private static final HashMap<String, User> names = new HashMap<>();
+    private static final HashMap<Integer, User> userMap = new HashMap<>();
     private static HashSet<ObjectOutputStream> writers = new HashSet<>();   // List of outputs to user
     private static ArrayList<User> users = new ArrayList<>();               // List of user instance
     public static Logger logger = LoggerFactory.getLogger(Server.class);
@@ -62,7 +65,7 @@ public class Server {
                 return false;
             }
             
-            // Check if the username already exists
+            // Get user list and store in a map
             try (PreparedStatement st = connection.prepareStatement(
                 "SELECT * FROM User")) {
     
@@ -79,13 +82,15 @@ public class Server {
                         user.setStatus(Status.OFFLINE);
 
                         // Store the user object in the HashMap with username as the key
+                        userMap.put(userID, user);
                         names.put(username, user);
+                        logger.info("User added: {} with ID: {}", username, userID);
                     }
                 }
             }
 
         } catch (SQLException e) {
-            logger.error("Error closing database connection: " + e.getMessage(), e);
+            logger.error("SQL Exception: " + e.getMessage(), e);
         }
         return true;
     }
@@ -135,6 +140,7 @@ public class Server {
                             case LOGIN:
                                 isValid = validateClient(inputmsg);
                                 if (isValid) {
+                                    this.name = inputmsg.getName();
                                     User user = names.get(inputmsg.getName());
                                     user.setStatus(Status.ONLINE);
                                     logger.info(user.getName()+"login now");
@@ -146,6 +152,14 @@ public class Server {
 
                             case STATUS:
                                 changeStatus(inputmsg);
+                                break;
+
+                            case C_FRIEND_REQUEST:
+                                sendFriendRequest(inputmsg);
+                                break;
+
+                            case C_GET_FRIEND_REQUEST:
+                                getUserFriendRequest(inputmsg);
                                 break;
                         }
                     }
@@ -305,113 +319,224 @@ public class Server {
             return isValid;
         }
         
-        // Add friend and create conversation 
-        private synchronized boolean validateFriendRequest(Message validateMessage) throws InvalidUserException {
-            boolean isValid = false;
-            
-            User user1=names.get(validateMessage.getName());
-            User user2=names.get(validateMessage.getMsg());
-            
-            //Check user2 exist
-            if (user2.equals(null)) return false;
-            
-            logger.info(user1.getName() + " is trying to add friend with client " + user2.getName());
+        // Add friend and create conversation
+        private synchronized boolean sendFriendRequest(Message inputMsg) throws IOException, InvalidUserException {
+            String targetName = inputMsg.getName();
+            boolean isValid = true;
+
+            if (names.get(targetName) == null) {
+                // Target user does not exist
+                Message msg = new Message();
+                msg.setType(MessageType.S_FRIEND_REQUEST);
+                msg.setMsg("User does not exist");
+                sendMessageToTarget(output, msg);
+                return false;
+            }
+
+            if (targetName.equals(name)) {
+                // Send request to themselves
+                Message msg = new Message();
+                msg.setType(MessageType.S_FRIEND_REQUEST);
+                msg.setMsg("Cannot send request to yourself");
+                sendMessageToTarget(output, msg);
+                return false;
+            }
+
+            User requestUser = names.get(name);
+            User targetUser = names.get(targetName);
+
             try (Connection connection = DatabaseManager.getConnection()) {
-                logger.info("getConnection() exit");
-                if (connection != null) {
-                    logger.info("Successfully connected to the database!");
-                } else {
-                    logger.info("Cannot connect to database!");
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
                     return false;
                 }
-                //check freindship
-                try (PreparedStatement st=connection.prepareStatement(
-            		"SELECT user1_id, user2_id FROM Friendship WHERE user1_id=? && user2_id=?")){
-            		
-            		st.setLong(1, Math.min(user1.getID(), user2.getID()));
-            		st.setLong(2, Math.max(user1.getID(), user2.getID()));
-            		
-            		try (ResultSet rs = st.executeQuery()) {
+
+                // Check if they are already friends
+                String checkFriendshipQuery = "SELECT * FROM Friendship WHERE user1_id=? AND user2_id=?";
+                try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
+                    int requestUserID = requestUser.getID();
+                    int targetUserID = targetUser.getID();
+                    st.setInt(1, Math.min(requestUserID, targetUserID));
+                    st.setInt(2, Math.max(requestUserID, targetUserID));
+
+                    try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
-                            logger.info("Friendship exists between: " + user1.getName() + " and " + user2.getName());
+                            // Already friends
+                            logger.info("Already friends");
                             Message msg = new Message();
-                            msg.setMsg("Friendship exist");
                             msg.setType(MessageType.S_FRIEND_REQUEST);
-                            msg.setName("SERVER");
-                            sendMessageToTarget(this.output, msg);
+                            msg.setMsg("Already friends");
+                            sendMessageToTarget(output, msg);
                             return false;
                         }
-                        else {
-                        	try (PreparedStatement InsertFriendShip = connection.prepareStatement(
-                                     "INSERT INTO Friendship (user1_id, user2_id, create_datetime) VALUES (?, ?, NOW())")) {
-                        		InsertFriendShip.setLong(1, Math.min(user1.getID(), user2.getID()));
-                        		InsertFriendShip.setLong(2, Math.max(user1.getID(), user2.getID()));
-                        		
-                        		createConversation(new ArrayList<User>() {{add(user1);add(user2);}});
-                        	}
-                        	return true;
-                        }
                     }
-            	}
+                }
+
+                // Insert new friend request
+                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id, create_dt) VALUES (?, ?, NOW())";
+                try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
+                    int requestUserID = requestUser.getID();
+                    int targetUserID = targetUser.getID();
+                    st.setInt(1, requestUserID);
+                    st.setInt(2, targetUserID);
+
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        logger.info("Friend request sent from user {} to user {}", requestUserID, targetUserID);
+                        Message msg = new Message();
+                        msg.setType(MessageType.S_FRIEND_REQUEST);
+                        msg.setMsg("Successful");
+                        sendMessageToTarget(output, msg);
+                        return false;
+                    } else {
+                        logger.error("Failed to sent friend request from user {} to user {}", requestUserID, targetUserID);
+                        return false;
+                    }
+                }
+
             } catch (SQLException sqlException) {
                 logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                return false;
             } catch (IOException ioException) {
                 logger.error("IO Exception: " + ioException.getMessage(), ioException);
-            } finally {
-                logger.info("send response to client");
+                return false;
             }
-            return isValid;
         }
-        
-        
-        private synchronized boolean createConversation(ArrayList<User> userList) throws InvalidUserException {
-            
-            logger.info("Server is trying to create a conversation range " +userList.size()+" users include:");
-            for (User user:userList) {
-            	logger.info(user.getName());
-            }
-        
+
+        private void getUserFriendRequest(Message inputMsg) throws IOException{
+            String userName = inputMsg.getName();
+            int userID = names.get(userName).getID();
+
+            ArrayList<User> requestUserList = new ArrayList<User>(); 
+
             try (Connection connection = DatabaseManager.getConnection()) {
-                logger.info("getConnection() exit");
-                if (connection != null) {
-                    logger.info("Successfully connected to the database!");
-                } else {
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
+                    Message msg = new Message();
+                    msg.setType(MessageType.ERROR);
+                    msg.setMsg("Cannot connect to database!");
+                    sendMessageToTarget(output, msg);
+                    return;
+                }
+
+                // Get user list and store in a map
+                String query = "SELECT sender_id FROM FriendRequest WHERE receiver_id=?";
+                try (PreparedStatement st = connection.prepareStatement(query)) {
+                    st.setInt(1, userID);
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                            // Retrieve user information from the ResultSet
+                            int senderID = rs.getInt("sender_id");
+
+                            User senderUser = userMap.get(senderID);
+
+                            // Store the user object in the HashMap with username as the key
+                            requestUserList.add(senderUser);
+                            logger.debug("Sender with ID {} added", userID);
+                        }
+                    }
+                }
+
+                Message msg = new Message();
+                msg.setType(MessageType.S_GET_FRIEND_REQUEST);
+                msg.setUserlist(requestUserList);
+                sendMessageToTarget(output, msg);
+
+            } catch (SQLException e) {
+                logger.error("SQL Exception: " + e.getMessage(), e);
+                return;
+            }
+        }
+
+        
+        private synchronized boolean createConversation(ArrayList<User> userList) throws IOException, InvalidUserException {
+            int createConversationID = -1;
+
+            logger.info("Server is trying to create a conversation with " + userList.size() + " users including:");
+            for (User user : userList) {
+                logger.info(user.getName());
+            }
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
                     logger.info("Cannot connect to database!");
                     return false;
                 }
-        
+                logger.info("Successfully connected to the database!");
+
                 // Insert the new conversation 
-                try (PreparedStatement st = connection.prepareStatement(
-                    "INSERT INTO Converssation (is_group, create_datetime, group_member) VALUES (0, NOW(), 2)")) {
-        
+                String insertConversationSQL = "INSERT INTO Conversation (is_group, create_datetime, group_member) VALUES (0, NOW(), ?)";
+                try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    st.setInt(1, userList.size());
+
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
-                        logger.info("A new conversation between "+userList.get(0).getName()+
-                        		" and "+userList.get(1).getName()+" has been inserted successfully");
-                        Message msg = new Message();
-                        msg.setMsg("Conversation between "+userList.get(0).getName()+" and "+userList.get(1).getName()+" is created, please return to continue");
-                        msg.setType(MessageType.S_FRIEND_REQUEST);
-                        msg.setName("SERVER");
-                        sendMessageToTarget(this.output, msg);
-                        return false;
+                        try (ResultSet keys = st.getGeneratedKeys()) {
+                            if (keys.next()) {
+                                createConversationID = keys.getInt(1);
+                                logger.info("A conversation has been created with ID " + createConversationID);
+                            } else {
+                                logger.error("Failed to retrieve the ID of the new conversation.");
+                                return false;
+                            }
+                        }
                     } else {
                         logger.error("Failed to insert new conversation from: " + userList.get(0).getName());
                         return false;
                     }
                 }
-        
+
+                for (User user : userList) {
+                    // Update chat member
+                    String insertChatMemberSQL = "INSERT INTO ChatMember (conversation_id, user_id, join_datetime) VALUES (?, ?, NOW())";
+                    try (PreparedStatement st = connection.prepareStatement(insertChatMemberSQL)) {
+                        st.setInt(1, createConversationID);
+                        st.setInt(2, user.getID());
+                        int affectedRows = st.executeUpdate();
+                        if (affectedRows > 0) {
+                            logger.info("User with ID " + user.getID() + " has been added to the conversation");
+                        } else {
+                            logger.error("Failed to add user with ID " + user.getID() + " to the conversation");
+                            return false;
+                        }
+                    }
+                }
             } catch (SQLException sqlException) {
                 logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
-                
-            } catch (IOException ioException) {
-                logger.error("IO Exception: " + ioException.getMessage(), ioException);
-
-            } finally {
-                logger.info("registerClient() method exit");
+                return false;
             }
-        
+
+            logger.info("createConversation() method exit");
             return true;
         }
+
+        /*
+        private ArrayList<Conversation> getUserConversationList(User user) {
+            int userID = user.getID();
+            
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
+                    logger.info("Cannot connect to database!");
+                    return false;
+                }
+                logger.info("Successfully connected to the database!");
+
+                // Insert the new conversation 
+                String insertConversationSQL = "SELECT conversation_id FROM ChatMember WHERE user_id=?";
+                try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    st.setInt(1, userID);
+                    
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                       }
+                    }
+                }
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                return false;
+            }
+        }
+        */
 
         private void sendMessageToTarget(ObjectOutputStream target, Message msg) throws IOException {
             target.writeObject(msg);
@@ -514,7 +639,7 @@ public class Server {
             if (closeable != null) {
                 try {
                     closeable.close();
-                    logger.info(closeable.getClass().getSimpleName() + " closed.");
+                    //logger.info(closeable.getClass().getSimpleName() + " closed.");
                 } catch (IOException e) {
                     logger.error("Error closing " + closeable.getClass().getSimpleName() + ": " + e.getMessage(), e);
                 }

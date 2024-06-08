@@ -42,6 +42,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 
@@ -65,6 +67,7 @@ public class ChatController implements Initializable {
 
     private ChatController instance;
     private AddFriendController addFriendCon;
+    private FriendRequestController friendRequestCon;
     
     Logger logger = LoggerFactory.getLogger(ChatController.class);
 
@@ -98,6 +101,29 @@ public class ChatController implements Initializable {
             BorderPane window = fxmlLoader.load();
             addFriendCon = fxmlLoader.getController();
             addFriendCon.setListener(this.listener);
+
+            Stage stage = MainLauncher.getPrimaryStage();
+            Scene scene = new Scene(window);
+            stage.setScene(scene);
+
+            // Set stage size to match scene size
+            stage.setWidth(window.getPrefWidth());
+            stage.setHeight(window.getPrefHeight());
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Consider logging the error or showing an alert to the user
+        }
+    }
+
+    public void friendRequestHandler() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/FriendRequestView.fxml"));
+            BorderPane window = fxmlLoader.load();
+            friendRequestCon = fxmlLoader.getController();
+            listener.setFriendRequestController(friendRequestCon);
+            listener.getFriendRequest();
+            friendRequestCon.setListener(this.listener);
 
             Stage stage = MainLauncher.getPrimaryStage();
             Scene scene = new Scene(window);

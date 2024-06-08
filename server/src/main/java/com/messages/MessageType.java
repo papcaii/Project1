@@ -1,6 +1,7 @@
 package com.messages;
 
 public enum MessageType {
+	ERROR,
     DISCONNECTED, 
     CONNECTED, 
     LOGIN, 
@@ -14,5 +15,8 @@ public enum MessageType {
     REGISTER, 
     REGISTER_SUCCESS,
     UPDATE_USER,  
-    S_FRIEND_REQUEST
+    S_FRIEND_REQUEST,
+    C_FRIEND_REQUEST,
+    S_GET_FRIEND_REQUEST,
+    C_GET_FRIEND_REQUEST
 }

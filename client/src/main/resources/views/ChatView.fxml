@@ -36,7 +36,10 @@
                         <Font name="SansSerif Regular" size="14.0" />
                      </font>
                   </TextArea>
-                  <Button fx:id="buttonSend" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#sendButtonAction" prefHeight="43.0" prefWidth="140.0" scaleShape="false" text="Send" textAlignment="CENTER" HBox.hgrow="NEVER" />
+                  <Button id="connectBtn" fx:id="buttonSend" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#sendButtonAction" prefHeight="43.0" prefWidth="140.0" scaleShape="false" stylesheets="@../styles/Login.css" text="Send" textAlignment="CENTER" HBox.hgrow="NEVER">
+                     <font>
+                        <Font name="Roboto" size="12.0" />
+                     </font></Button>
                </children>
             </HBox>
          </children>
@@ -45,12 +48,12 @@
    <left>
       <VBox maxHeight="1.7976931348623157E308" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="217.0" text="Button">
+            <Button fx:id="friendRequestBtn" mnemonicParsing="false" onAction="#friendRequestHandler" prefHeight="25.0" prefWidth="217.0" text="Friend Request">
                <font>
                   <Font name="Roboto" size="12.0" />
                </font>
             </Button>
-            <Button fx:id="addFriendBtn" mnemonicParsing="false" onAction="#addFriendHandler" prefHeight="25.0" prefWidth="217.0" text="ADD FRIEND">
+            <Button fx:id="addFriendBtn" mnemonicParsing="false" onAction="#addFriendHandler" prefHeight="25.0" prefWidth="217.0" text="Add Friend">
                <font>
                   <Font name="Roboto" size="12.0" />
                </font></Button>

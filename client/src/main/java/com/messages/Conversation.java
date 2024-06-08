@@ -7,6 +7,7 @@ public class Conversation {
 	private ArrayList<User> members;
 	private boolean isGroup;
 	private User groupMaster;
+	
 	public Conversation(int conversationId, ArrayList<User> members, boolean isGroup, User groupMaster) {
 		super();
 		this.conversationId=conversationId;
