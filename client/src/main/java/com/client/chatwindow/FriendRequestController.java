@@ -3,6 +3,7 @@ package com.client.chatwindow;
 import com.client.login.MainLauncher;
 
 import com.messages.User;
+import com.messages.Conversation;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 import org.slf4j.Logger;
@@ -54,10 +56,16 @@ public class FriendRequestController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize any required data or components here
         // Add to track userListView
-        requestListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<User>() {
-            public void changed(ObservableValue<? extends User> observable, User oldUser, User newUser) {
-                logger.info("ListView selection changed to newValue = " + newUser.getName());
-                currentTargetName = newUser.getName();
+        requestListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
+            @Override
+            public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
+                if (newRequest != null) {
+                    currentTargetName = newRequest.getConversationName();
+                    logger.info("ListView selection changed to newValue = " + currentTargetName);
+                } else {
+                    currentTargetName = null;
+                    logger.info("ListView selection cleared.");
+                }           
             }
         });
     }
@@ -66,23 +74,21 @@ public class FriendRequestController implements Initializable {
         this.listener = listener;
     }
 
-    public void setUserListView(ArrayList<User> userArrayList) {
-        logger.info("setUserListView() method Enter with");
+    public void setConversationListView(ArrayList<Conversation> userConversationList) {
+        logger.info("setConversationListView() method Enter");
         
         Platform.runLater(() -> {
             try {
-            
                 // Update user list view
-                ObservableList<User> usersList = FXCollections.observableList(userArrayList);
-                requestListView.setItems(usersList);
+                ObservableList<Conversation> conversationList = FXCollections.observableList(userConversationList);
+                requestListView.setItems(conversationList);
                 requestListView.setCellFactory(new CellRenderer());
-                        
-                logger.info("User list updated successfully");
+            
         } catch (Exception e) {
                 logger.error("Error updating user list", e);
         }
     });
-        logger.info("setUserListView() method Exit");
+        logger.info("setConversationListView() method Exit");
     }
 
     public void acceptHandler(ActionEvent event) {

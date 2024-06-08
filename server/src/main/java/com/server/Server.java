@@ -1,5 +1,7 @@
 package com.server;
 
+
+
 import com.database.DatabaseManager;
 import com.exception.InvalidUserException;
 import com.messages.Message;
@@ -14,10 +16,13 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
@@ -29,6 +34,7 @@ public class Server {
     private static final int PORT = 9001;
     private static final HashMap<String, User> names = new HashMap<>();
     private static final HashMap<Integer, User> userMap = new HashMap<>();
+    private static final HashMap<Integer, User> onlineUserMap = new HashMap<>();
     private static HashSet<ObjectOutputStream> writers = new HashSet<>();   // List of outputs to user
     private static ArrayList<User> users = new ArrayList<>();               // List of user instance
     public static Logger logger = LoggerFactory.getLogger(Server.class);
@@ -143,6 +149,7 @@ public class Server {
                                     this.name = inputmsg.getName();
                                     User user = names.get(inputmsg.getName());
                                     user.setStatus(Status.ONLINE);
+                                    onlineUserMap.put(user.getID(), user);
                                     logger.info(user.getName()+"login now");
                                 }
                                 break;
@@ -298,7 +305,7 @@ public class Server {
                         	}
                         }
                         user.setID(getID);
-                        addToUserList(user);
+                        addToOnlineUserList(user);
                         return false;
                     } else {
                         logger.error("Failed to insert new user: " + registerMessage.getName());
@@ -406,8 +413,10 @@ public class Server {
         private void getUserFriendRequest(Message inputMsg) throws IOException{
             String userName = inputMsg.getName();
             int userID = names.get(userName).getID();
+            int senderID;
+            User senderUser;
 
-            ArrayList<User> requestUserList = new ArrayList<User>(); 
+            HashMap<Integer, Conversation> requestMap = new HashMap<Integer, Conversation>(); 
 
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
@@ -426,20 +435,23 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         while (rs.next()) {
                             // Retrieve user information from the ResultSet
-                            int senderID = rs.getInt("sender_id");
+                            senderID = rs.getInt("sender_id");
 
-                            User senderUser = userMap.get(senderID);
+                            senderUser = userMap.get(senderID);
+                            Conversation request = new Conversation();
+                            request.setConversationID(senderID);
+                            request.setConversationName(senderUser.getName());
 
                             // Store the user object in the HashMap with username as the key
-                            requestUserList.add(senderUser);
-                            logger.debug("Sender with ID {} added", userID);
+                            requestMap.put(senderID, request);
+                            logger.debug("Sender with ID {} added", senderID);
                         }
                     }
                 }
 
                 Message msg = new Message();
                 msg.setType(MessageType.S_GET_FRIEND_REQUEST);
-                msg.setUserlist(requestUserList);
+                msg.setConversationMap(requestMap);
                 sendMessageToTarget(output, msg);
 
             } catch (SQLException e) {
@@ -510,14 +522,15 @@ public class Server {
             return true;
         }
 
-        /*
-        private ArrayList<Conversation> getUserConversationList(User user) {
-            int userID = user.getID();
-            
+        private void getUserConversation(User user) throws IOException {            
             try (Connection connection = DatabaseManager.getConnection()) {
+                int userID = user.getID();
+                ArrayList<Integer> conversationIDs = new ArrayList<Integer>();
+                HashMap<Integer, Conversation> userConversation = new HashMap<Integer, Conversation>();
+                
                 if (connection == null) {
                     logger.info("Cannot connect to database!");
-                    return false;
+                    return;
                 }
                 logger.info("Successfully connected to the database!");
 
@@ -528,15 +541,43 @@ public class Server {
                     
                     try (ResultSet rs = st.executeQuery()) {
                         while (rs.next()) {
+                            conversationIDs.add(rs.getInt("conversation_id"));
                        }
                     }
                 }
+
+                // If no conversation IDs were found, return an empty list
+                if (conversationIDs.isEmpty()) {
+                    return;
+                }
+
+                // Query to get the conversation details using the conversation IDs
+                String selectConversationsSQL = "SELECT * FROM Conversation WHERE id IN (" +
+                        conversationIDs.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")";
+                try (PreparedStatement st = connection.prepareStatement(selectConversationsSQL)) {
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                            Conversation conversation = new Conversation();
+                            conversation.setConversationID(rs.getInt("conversation_id"));
+                            conversation.setConversationName(rs.getString("conversation_name"));
+                            // Add more fields as necessary
+                            userConversation.put(conversation.getConversationID(), conversation);
+
+                            Message msg = new Message();
+                            msg.setType(MessageType.S_UPDATE_CONVERSATION);
+                            msg.setConversationMap(userConversation);
+                            sendMessageToTarget(this.output, msg);
+                        }
+                    }
+                }
+
+
+
             } catch (SQLException sqlException) {
                 logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
-                return false;
+                return;
             }
         }
-        */
 
         private void sendMessageToTarget(ObjectOutputStream target, Message msg) throws IOException {
             target.writeObject(msg);
@@ -587,9 +628,8 @@ public class Server {
         }
 
         // when a new user login success
-        private Message addToUserList(User user) throws IOException {
-            users.add(user);                    // add user to list
-            names.put(user.getName(), user);    // add name to list
+        private Message addToOnlineUserList(User user) throws IOException {
+            onlineUserMap.put(user.getID(), user);                    // add user to list
             writers.add(this.output);  
 
             Message msg = new Message();
@@ -610,17 +650,14 @@ public class Server {
         private synchronized void closeConnections() {
             logger.debug("closeConnections() method Enter");
             logger.info("HashMap names:" + names.size() + " writers:" + writers.size() + " usersList size:" + users.size());
-            if (name != null) {
-                names.remove(name);
-                logger.info("User: " + name + " has been removed!");
-            }
+
             if (user != null) {
-                users.remove(user);
-                logger.info("User object: " + user + " has been removed!");
+                onlineUserMap.remove(user.getID());
+                // logger.info("User object: " + user + " has been removed!");
             }
             if (output != null) {
                 writers.remove(output);
-                logger.info("Writer object: " + output + " has been removed!");
+                // logger.info("Writer object: " + output + " has been removed!");
             }
             closeQuietly(is);
             closeQuietly(input);

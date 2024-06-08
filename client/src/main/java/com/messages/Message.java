@@ -12,6 +12,7 @@ public class Message implements Serializable {
     private MessageType type;
     private String msg;
     private ArrayList<User> userList;
+    private HashMap<Integer, Conversation> conversationMap;
 
 	private String picturePath;
 	private Status status;
@@ -22,7 +23,7 @@ public class Message implements Serializable {
     
 
 
-// Getter
+	// Getter
     public String getPicture() {
         return picturePath;
     }
@@ -55,6 +56,10 @@ public class Message implements Serializable {
     
     public Status getStatus() {
         return status;
+    }
+    
+    public HashMap<Integer, Conversation> getConversationMap() {
+    	return conversationMap;
     }
 
 // Setter
@@ -89,7 +94,9 @@ public class Message implements Serializable {
     public void setMsg(String msg) {
         this.msg = msg;
     }
-
-
+    
+    public void setConversationMap(HashMap<Integer, Conversation> conversationMap) {
+    	this.conversationMap = conversationMap;
+	}
 }
 

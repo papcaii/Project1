@@ -1,14 +1,20 @@
 package com.client.chatwindow;
 
 import com.client.login.LoginController;
+
+import com.messages.Conversation;
 import com.messages.Message;
 import com.messages.MessageType;
 import com.messages.Status;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import static com.messages.MessageType.CONNECTED;
 
@@ -134,12 +140,14 @@ public class Listener implements Runnable {
                         case REGISTER_SUCCESS:
                             LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
-                        case UPDATE_USER:
-                            chatCon.getInstance().setUserListView(message);
-                            break;
                         case S_GET_FRIEND_REQUEST:
-                            friendRequestCon.getInstance().setUserListView(message.getUserList());
+                            ArrayList<Conversation> requestList = new ArrayList<>(message.getConversationMap().values());
+                            friendRequestCon.getInstance().setConversationListView(requestList);
                             break;
+                        case S_UPDATE_CONVERSATION:
+                            if (chatCon != null) {
+                                chatCon.getInstance().setConversationListView(message);
+                            }
                     }
                 }
             }

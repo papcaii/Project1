@@ -5,6 +5,7 @@ import java.io.*;
 import com.client.login.MainLauncher;
 import com.client.login.LoginController;
 import com.messages.Message;
+import com.messages.Conversation;
 import com.messages.MessageType;
 import com.messages.User;
 import com.messages.Status;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 
@@ -232,31 +234,6 @@ public class ChatController implements Initializable {
         Platform.runLater(() -> onlineCountLabel.setText(usercount));
     }
 
-    /*
-    public void setConversationListView(ArrayList conversationList) {
-        logger.info("setUserListView() method Enter with");
-        
-        Platform.runLater(() -> {
-            try {
-            
-                // Update user list view
-                ObservableList<User> observeConversationList = FXCollections.observableList(conversationList);
-                conversationListView.setItems(observeConversationList);
-                conversationListView.setCellFactory(new CellRenderer());
-            
-                // Update online number
-                int onlineCount = conversationList.size();  // Assuming msg.getUsers() returns the list of users
-                setOnlineLabel(String.valueOf(onlineCount));
-            
-                logger.info("User list updated successfully with " + onlineCount + " users.");
-        } catch (Exception e) {
-                logger.error("Error updating user list", e);
-        }
-    });
-        logger.info("setUserListView() method Exit");
-    }
-    */
-
     public void setUserListView(Message msg) {
         logger.info("setUserListView() method Enter with");
         
@@ -278,6 +255,24 @@ public class ChatController implements Initializable {
         }
     });
         logger.info("setUserListView() method Exit");
+    }
+
+    public void setConversationListView(Message msg) {
+        logger.info("setConversationListView() method Enter");
+        HashMap<Integer, Conversation> conversationMap = msg.getConversationMap();
+        
+        Platform.runLater(() -> {
+            try {
+                // Update user list view
+                ObservableList<Conversation> conversationList = FXCollections.observableList(new ArrayList<>(conversationMap.values()));
+                userListView.setItems(conversationList);
+                userListView.setCellFactory(new CellRenderer());
+            
+        } catch (Exception e) {
+                logger.error("Error updating user list", e);
+        }
+    });
+        logger.info("setConversationListView() method Exit");
     }
 
 
