@@ -64,7 +64,7 @@ public class ChatController implements Initializable {
     private double xOffset;
     private double yOffset;
     
-    public String currentTargetName = ""; 
+    private int currentTargetConversationID = -1; 
     public Listener listener;
 
     private ChatController instance;
@@ -89,10 +89,18 @@ public class ChatController implements Initializable {
         this.usernameLabel.setText(username);
     }
 
+    public int getCurrentTargetConversationID() {
+        return this.currentTargetConversationID;
+    }
+
     public void sendButtonAction() throws IOException {
         String msg = messageBox.getText();
+        if (currentTargetConversationID == -1) {
+            LoginController.showErrorDialog("You have not choosen any conversation");
+            return;
+        }
         if (!messageBox.getText().isEmpty()) {
-            this.listener.send(msg);
+            this.listener.sendMessageToConversation(currentTargetConversationID, msg);
             messageBox.clear();
         }
     }
@@ -141,42 +149,36 @@ public class ChatController implements Initializable {
         }
     }
 
-	// When a new message add to chat
-    public synchronized void addToChat(Message msg) {
-    
-    	logger.info(msg.getPicture());
-    
-    	// Task to handle messages from other users
+    // When a new message add to chat
+    public synchronized void addMessageToChatView(Message msg) {
+
+        logger.info("addMessageToChatView() method ENTER");
+
+        // Task to handle messages from other users
         Task<HBox> othersMessages = new Task<HBox>() {
             @Override
             public HBox call() throws Exception {
-            
-            	// Load the profile image of the sender
-                Image image = new Image(getClass().getClassLoader().getResource(msg.getPicture()).toString());
+                // Load the profile image of the sender
+                Image image = userImageView.getImage();
                 ImageView profileImage = new ImageView(image);
                 profileImage.setFitHeight(32);
                 profileImage.setFitWidth(32);
-                
+
                 // Create a BubbledLabel for the message text
                 BubbledLabel bl6 = new BubbledLabel();
                 bl6.setText(msg.getName() + ": " + msg.getMsg());
-                bl6.setBackground(new Background(new BackgroundFill(Color.WHITE,null, null)));
-                
+                bl6.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+
                 // Create an HBox to contain the profile image and message bubble
                 HBox x = new HBox();
                 bl6.setBubbleSpec(BubbleSpec.FACE_LEFT_CENTER);
                 x.getChildren().addAll(profileImage, bl6);
-                logger.debug("ONLINE USERS: " + Integer.toString(msg.getUserList().size()));
-                
-                // Update the online user count
-                int onlineCount = msg.getUserList().size();  // Assuming msg.getUsers() returns the list of users
-            	setOnlineLabel(String.valueOf(onlineCount));
-                logger.info("Execute other message");
+
                 return x;
             }
         };
 
-		// Task to handle messages from the user
+        // Task to handle messages from the user
         Task<HBox> yourMessages = new Task<HBox>() {
             @Override
             public HBox call() throws Exception {
@@ -188,40 +190,41 @@ public class ChatController implements Initializable {
                 BubbledLabel bl6 = new BubbledLabel();
                 bl6.setText(msg.getMsg());
                 bl6.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, null, null)));
-                
+
                 HBox x = new HBox();
                 x.setMaxWidth(chatPane.getWidth() - 20);
                 x.setAlignment(Pos.TOP_RIGHT);
                 bl6.setBubbleSpec(BubbleSpec.FACE_RIGHT_CENTER);
                 x.getChildren().addAll(bl6, profileImage);
 
-                setOnlineLabel(Integer.toString(msg.getUserList().size()));
                 return x;
             }
         };
-        
-        // If task succeeded, add box to chat pane
-        othersMessages.setOnSucceeded(event -> {
-    		HBox messageBox = othersMessages.getValue();
-    		Platform.runLater(() -> {
-        		chatPane.getItems().add(messageBox);
-    		});
-		});
-        
-        yourMessages.setOnSucceeded(event -> {
-    		HBox messageBox = yourMessages.getValue();
-    		Platform.runLater(() -> {
-        		chatPane.getItems().add(messageBox);
-    		});
-		});
 
-		// Determine if the message is from the user or another user and start the corresponding task
+        // Set onSucceeded event handler for othersMessages task
+        othersMessages.setOnSucceeded(event -> {
+            logger.info("Adding message from another user");
+            HBox messageBox = othersMessages.getValue();
+            Platform.runLater(() -> chatPane.getItems().add(messageBox));
+        });
+
+        // Set onSucceeded event handler for yourMessages task
+        yourMessages.setOnSucceeded(event -> {
+            logger.info("Adding message from self");
+            HBox messageBox = yourMessages.getValue();
+            Platform.runLater(() -> chatPane.getItems().add(messageBox));
+        });
+
+        // Set onFailed event handler for both tasks to log errors
+        othersMessages.setOnFailed(event -> logger.error("Failed to load other user's message", othersMessages.getException()));
+        yourMessages.setOnFailed(event -> logger.error("Failed to load user's message", yourMessages.getException()));
+
+        // Determine if the message is from the user or another user and start the corresponding task
         if (msg.getName().equals(usernameLabel.getText())) {
             Thread t2 = new Thread(yourMessages);
             t2.setDaemon(true);
             t2.start();
         } else {
-        	logger.info("Execute other message");
             Thread t = new Thread(othersMessages);
             t.setDaemon(true);
             t.start();
@@ -361,12 +364,18 @@ public class ChatController implements Initializable {
         });
         
         // Add to track userListView
-        userListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<User>() {
-    		public void changed(ObservableValue<? extends User> observable, User oldUser, User newUser) {
-        		logger.info("ListView selection changed to newValue = " + newUser.getName());
-        		currentTargetName = newUser.getName();
-    		}
-		});
+        userListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
+            @Override
+            public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
+                if (newRequest != null) {
+                    currentTargetConversationID = newRequest.getConversationID();
+                    logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
+                } else {
+                    currentTargetConversationID = -1;
+                    logger.info("ListView selection cleared.");
+                }           
+            }
+        });
 
     }
 }

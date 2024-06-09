@@ -6,6 +6,7 @@ import com.messages.Conversation;
 import com.messages.Message;
 import com.messages.MessageType;
 import com.messages.Status;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ public class Listener implements Runnable {
     private OutputStream os;
     private ObjectInputStream input;
     private ObjectOutputStream output;
+
+    public HashMap<Integer, Conversation> conversationMap;
 
     private boolean socketReady = false;
     private boolean isValid; 
@@ -111,10 +114,10 @@ public class Listener implements Runnable {
                 message = (Message) this.input.readObject();
 
                 if (message != null) {
-                    logger.debug("Message recieved:" + message.getMsg() + " MessageType:" + message.getType() + "Name:" + message.getName());
+                    logger.info("Message recieved:" + message.getType());
                     switch (message.getType()) {
                         case USER_MESSAGE:
-                            chatCon.getInstance().addToChat(message);
+                            chatCon.getInstance().addMessageToChatView(message);
                             break;
                         case SERVER:
                             chatCon.getInstance().addAsServer(message);
@@ -134,20 +137,44 @@ public class Listener implements Runnable {
                             logger.info("Successful login");
                             LoginController.getInstance().showChatScene();
                             break;
+
                         case DECLINED:
                             LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
+
                         case REGISTER_SUCCESS:
                             LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
+
                         case S_GET_FRIEND_REQUEST:
                             ArrayList<Conversation> requestList = new ArrayList<>(message.getConversationMap().values());
                             friendRequestCon.getInstance().setConversationListView(requestList);
                             break;
+
                         case S_UPDATE_CONVERSATION:
-                            if (chatCon != null) {
-                                chatCon.getInstance().setConversationListView(message);
+                            while (chatCon == null) {
+                                try {
+                                    logger.info("Waiting for chatCon to be initialized...");
+                                    TimeUnit.SECONDS.sleep(1);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt(); // Restore interrupted status
+                                    logger.error("Thread was interrupted", e);
+                                }
                             }
+                            chatCon.getInstance().setConversationListView(message);
+                            this.conversationMap = message.getConversationMap();
+                            break;
+
+                        case S_CONVERSATION_CHAT:
+                            // check if user is choosing this conversation
+                            if (chatCon != null) {
+                                Integer currentConversationID = chatCon.getCurrentTargetConversationID();
+                                Integer targetConversationID = message.getTargetConversationID();
+                                if (currentConversationID.equals(targetConversationID)) {
+                                    chatCon.addMessageToChatView(message);
+                                }
+                            }
+                            break;
                     }
                 }
             }
@@ -156,16 +183,12 @@ public class Listener implements Runnable {
         }
     }
 
-    /* This method is used for sending a normal Message
-     * @param msg - The message which the user generates
-     */
-    public void send(String msg) throws IOException {
+    public void sendMessageToConversation(int conversationID, String messageContext) throws IOException {
         Message createMessage = new Message();
         createMessage.setName(this.username);
-        // createMessage.setTarget(conversationID);
-        createMessage.setType(MessageType.USER_MESSAGE);
-        createMessage.setMsg(msg);
-        createMessage.setPicture(picture);
+        createMessage.setType(MessageType.C_CONVERSATION_CHAT);
+        createMessage.setTargetConversationID(conversationID);
+        createMessage.setMsg(messageContext);
         this.output.writeObject(createMessage);
         this.output.flush();
     }

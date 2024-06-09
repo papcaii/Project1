@@ -92,7 +92,7 @@ public class FriendRequestController implements Initializable {
     }
 
     public void acceptHandler(ActionEvent event) {
-
+        
     }
 
     public void declineHandler(ActionEvent event) {

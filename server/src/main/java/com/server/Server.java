@@ -35,7 +35,7 @@ public class Server {
     private static final HashMap<String, User> names = new HashMap<>();
     private static final HashMap<Integer, User> userMap = new HashMap<>();
     private static final HashMap<Integer, User> onlineUserMap = new HashMap<>();
-    private static HashSet<ObjectOutputStream> writers = new HashSet<>();   // List of outputs to user
+    private static HashMap<Integer, ObjectOutputStream> writers = new HashMap<>();   // List of outputs to user
     private static ArrayList<User> users = new ArrayList<>();               // List of user instance
     public static Logger logger = LoggerFactory.getLogger(Server.class);
 
@@ -147,18 +147,15 @@ public class Server {
                                 isValid = validateClient(inputmsg);
                                 if (isValid) {
                                     this.name = inputmsg.getName();
-                                    User user = names.get(inputmsg.getName());
-                                    user.setStatus(Status.ONLINE);
+                                    this.user = names.get(inputmsg.getName());
+                                    writers.put(user.getID(), this.output);
                                     onlineUserMap.put(user.getID(), user);
-                                    logger.info(user.getName()+"login now");
+                                    logger.info(user.getName()+" login now");
+                                    getUserConversation(user.getID());
                                 }
                                 break;
                             case REGISTER:
                                 registerClient(inputmsg);
-                                break;
-
-                            case STATUS:
-                                changeStatus(inputmsg);
                                 break;
 
                             case C_FRIEND_REQUEST:
@@ -167,6 +164,10 @@ public class Server {
 
                             case C_GET_FRIEND_REQUEST:
                                 getUserFriendRequest(inputmsg);
+                                break;
+
+                            case C_CONVERSATION_CHAT:
+                                sendMessageToConversation(inputmsg);
                                 break;
                         }
                     }
@@ -182,16 +183,79 @@ public class Server {
             }
         }
 
-        private Message changeStatus(Message inputmsg) throws IOException {
-            logger.debug(inputmsg.getName() + " has changed status to " + inputmsg.getStatus());
-            Message msg = new Message();
-            msg.setName(user.getName());
-            msg.setType(MessageType.STATUS);
-            msg.setMsg("");
-            User userObj = names.get(name);
-            userObj.setStatus(inputmsg.getStatus());
-            write(msg);
-            return msg;
+        private boolean sendMessageToConversation(Message inputMsg) throws IOException {
+            logger.debug("User with name "+inputMsg.getName() + " trying to send message");
+            User senderUser = names.get(inputMsg.getName());
+            int senderID = senderUser.getID();
+            int targetConversationID = inputMsg.getTargetConversationID();
+            
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return false;
+                }
+
+                // Get user from the conversation
+                ArrayList<Integer> userIDs = new ArrayList<>();
+                try (PreparedStatement st = connection.prepareStatement(
+                        "SELECT user_id FROM ChatMember WHERE conversation_id=?")) {
+                    st.setInt(1, targetConversationID);
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                            userIDs.add(rs.getInt("user_id"));
+                        }
+                    }
+                }
+
+                // Insert new friend request
+                String insertMessageQuery = "INSERT INTO Message (context, sent_datetime, sender_id, conversation_id) VALUES (?, NOW(), ?, ?)";
+                try (PreparedStatement st = connection.prepareStatement(insertMessageQuery)) {
+
+                    st.setString(1, inputMsg.getMsg());
+                    st.setInt(2, senderID);
+                    st.setInt(3, targetConversationID);
+
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        logger.info("Message sent from user {} to conversation {}", senderID, targetConversationID);
+
+                        // Send the message to each user in the conversation
+                        for (int userID : userIDs) {
+                            
+                            ObjectOutputStream targetOutput = writers.get(userID);
+                            // if user not online, just write to database
+                            if (targetOutput == null) {
+                                logger.info("User with ID " + userID + " not online");
+                                continue;
+                            }
+
+                            Message sendMessage = new Message();
+                            sendMessage.setType(MessageType.S_CONVERSATION_CHAT);
+                            sendMessage.setName(inputMsg.getName());
+                            sendMessage.setMsg(inputMsg.getMsg());
+                            sendMessage.setTargetConversationID(targetConversationID);
+                            sendMessageToTarget(targetOutput, sendMessage);
+
+                            return true;
+                        }
+                    } else {
+                        logger.error("Failed to sent message from user {} to conversation {}", senderID, targetConversationID);
+                        return false;
+                    }
+                }
+
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                return false;
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+                return false;
+            } finally {
+                return true;
+            }
         }
 
         private synchronized boolean validateClient(Message validateMessage) throws InvalidUserException {
@@ -239,7 +303,7 @@ public class Server {
             } catch (IOException ioException) {
                 logger.error("IO Exception: " + ioException.getMessage(), ioException);
             } finally {
-                logger.info("send response to client");
+                //logger.info("send response to client");
             }
             return isValid;
         }
@@ -305,7 +369,7 @@ public class Server {
                         	}
                         }
                         user.setID(getID);
-                        addToOnlineUserList(user);
+
                         return false;
                     } else {
                         logger.error("Failed to insert new user: " + registerMessage.getName());
@@ -522,9 +586,8 @@ public class Server {
             return true;
         }
 
-        private void getUserConversation(User user) throws IOException {            
+        private synchronized void getUserConversation(int userID) throws IOException {            
             try (Connection connection = DatabaseManager.getConnection()) {
-                int userID = user.getID();
                 ArrayList<Integer> conversationIDs = new ArrayList<Integer>();
                 HashMap<Integer, Conversation> userConversation = new HashMap<Integer, Conversation>();
                 
@@ -552,7 +615,7 @@ public class Server {
                 }
 
                 // Query to get the conversation details using the conversation IDs
-                String selectConversationsSQL = "SELECT * FROM Conversation WHERE id IN (" +
+                String selectConversationsSQL = "SELECT * FROM Conversation WHERE conversation_id IN (" +
                         conversationIDs.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")";
                 try (PreparedStatement st = connection.prepareStatement(selectConversationsSQL)) {
                     try (ResultSet rs = st.executeQuery()) {
@@ -582,25 +645,15 @@ public class Server {
         private void sendMessageToTarget(ObjectOutputStream target, Message msg) throws IOException {
             target.writeObject(msg);
             target.flush();
-            logger.info("Message sent to client: " + msg.getMsg());
+            logger.info("Message sent to client: " + msg.getType());
         }
 
         private void sendMessageToAll(Message msg) throws IOException {
             // loop through all users
-            for (ObjectOutputStream writer : writers) {
+            for (ObjectOutputStream writer : writers.values()) {
                 sendMessageToTarget(writer, msg);
                 writer.reset();
             }
-        }
-
-        private Message sendNotification(Message firstMessage) throws IOException {
-            Message msg = new Message();
-            msg.setMsg("has joined the chat.");
-            msg.setType(MessageType.NOTIFICATION);
-            msg.setName(firstMessage.getName());
-            msg.setPicture(firstMessage.getPicture());
-            write(msg);
-            return msg;
         }
 
         // when an user logout
@@ -611,63 +664,35 @@ public class Server {
             msg.setType(MessageType.DISCONNECTED);
             msg.setName("SERVER");
             msg.setUserlist(users);
-            write(msg);
+            sendMessageToAll(msg);
             logger.debug("removeFromList() method Exit");
             return msg;
         }
 
-        // when a new user login success
-        private Message addToList() throws IOException {
-            Message msg = new Message();
-            msg.setMsg("Welcome, You have now joined the server! Enjoy chatting!");
-            msg.setType(MessageType.LOGIN);
-            msg.setName("SERVER");
-            msg.setUserlist(users);
-            write(msg);
-            return msg;
-        }
-
-        // when a new user login success
-        private Message addToOnlineUserList(User user) throws IOException {
-            onlineUserMap.put(user.getID(), user);                    // add user to list
-            writers.add(this.output);  
-
-            Message msg = new Message();
-            msg.setType(MessageType.UPDATE_USER);
-            msg.setName("SERVER");
-            msg.setUserlist(users);
-            sendMessageToAll(msg);
-            return msg;
-        }
-
-        private void write(Message msg) throws IOException {
-            for (ObjectOutputStream writer : writers) {
-                writer.writeObject(msg);
-                writer.reset();
-            }
-        }
-
         private synchronized void closeConnections() {
             logger.debug("closeConnections() method Enter");
-            logger.info("HashMap names:" + names.size() + " writers:" + writers.size() + " usersList size:" + users.size());
+            logger.info("HashMap online user:" + onlineUserMap.size() + " writers:" + writers.size() + " usersList size:" + users.size());
 
             if (user != null) {
                 onlineUserMap.remove(user.getID());
                 // logger.info("User object: " + user + " has been removed!");
             }
             if (output != null) {
-                writers.remove(output);
+                writers.remove(user.getID());
                 // logger.info("Writer object: " + output + " has been removed!");
             }
             closeQuietly(is);
             closeQuietly(input);
             closeQuietly(os);
             closeQuietly(output);
+
+            /*
             try {
-                removeFromList();
+                sendMessageToAll();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            */
             logger.info("HashMap names:" + names.size() + " writers:" + writers.size() + " usersList size:" + users.size());
             logger.debug("closeConnections() method Exit");
         }

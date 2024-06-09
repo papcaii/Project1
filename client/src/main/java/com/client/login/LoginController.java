@@ -184,13 +184,18 @@ public class LoginController implements Initializable {
     }
 
     // login success, change to chat scene controller
-    public void showChatScene() {
+    public synchronized void showChatScene() {
         Platform.runLater(() -> {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/ChatView.fxml"));
                 Parent window = fxmlLoader.load();
                 this.scene = new Scene(window);
                 chatCon = fxmlLoader.<ChatController>getController();
+
+                this.listener.setChatController(chatCon);
+                Listener.logger.info("Success init chat controller");
+                chatCon.setListener(this.listener);
+                chatCon.setUsernameLabel(usernameTextfield.getText());
     
                 Stage stage = (Stage) hostnameTextfield.getScene().getWindow();
                 stage.setResizable(true);
@@ -206,10 +211,6 @@ public class LoginController implements Initializable {
                 stage.setMinHeight(300);
                 ResizeHelper.addResizeListener(stage);
                 stage.centerOnScreen();
-
-                chatCon.setListener(this.listener);
-                chatCon.setUsernameLabel(usernameTextfield.getText());
-                this.listener.setChatController(chatCon);
 
                 //con.setImageLabel(selectedPicture.getText());
             } catch (IOException e) {
