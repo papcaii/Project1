@@ -40,9 +40,9 @@ Please refer to the [Requirement](Requirement.MD) document.
 
 2. **Expose the Port with Ngrok**:
     - Install Ngrok from [here](https://ngrok.com/download).
-    - Run the following command to expose the MySQL port:
+    - Run the following command to expose the server port:
     ```bash
-    ngrok tcp 8081
+    ngrok tcp 9001
     ```
 
 ### Running the Application
