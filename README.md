@@ -53,7 +53,7 @@ cd server
 mvn clean package exec:java
 ```
 #### Client
-```
+```bash
 cd client
 mvn clean javafx:run
 ```
