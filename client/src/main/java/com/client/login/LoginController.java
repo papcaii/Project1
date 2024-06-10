@@ -243,21 +243,35 @@ public class LoginController implements Initializable {
     }
 
     /* This displays an alert message to the user */
+    public static void showInformationDialog(String message) {
+        Platform.runLater(()-> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Notification");
+            alert.setHeaderText(null);
+            alert.setGraphic(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
+    }
+
+
+    /* This displays an alert message to the user */
     public static void showErrorDialog(String message) {
         Platform.runLater(()-> {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Warning!");
-            alert.setHeaderText(message);
-            alert.setContentText("Please check for server issues and check if the server is running.");
+            alert.setTitle("Error!");
+            alert.setHeaderText(null);
+            alert.setGraphic(null);
+            alert.setContentText(message);
             alert.showAndWait();
         });
-
     }
 
     public static boolean showConfirmationDialog(String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation");
         alert.setHeaderText(null);
+        alert.setGraphic(null);        
         alert.setContentText(message);
     
         ButtonType buttonYes = new ButtonType("Yes");
