@@ -1,7 +1,5 @@
 package com.server;
 
-
-
 import com.database.DatabaseManager;
 import com.exception.InvalidUserException;
 import com.messages.Message;
@@ -9,8 +7,11 @@ import com.messages.Conversation;
 import com.messages.MessageType;
 import com.messages.Status;
 import com.messages.User;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.mindrot.jbcrypt.*;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -143,9 +144,8 @@ public class Server {
                             case USER_MESSAGE:
                                 sendMessageToTarget(this.output, inputmsg);
                                 break;
-                            case LOGIN:
-                                isValid = validateClient(inputmsg);
-                                if (isValid) {
+                            case C_LOGIN:
+                                if (validateClient(inputmsg)) {
                                     this.name = inputmsg.getName();
                                     this.user = names.get(inputmsg.getName());
                                     writers.put(user.getID(), this.output);
@@ -154,7 +154,7 @@ public class Server {
                                     getUserConversation(user.getID());
                                 }
                                 break;
-                            case REGISTER:
+                            case C_REGISTER:
                                 registerClient(inputmsg);
                                 break;
 
@@ -238,6 +238,7 @@ public class Server {
                             sendMessage.setMsg(inputMsg.getMsg());
                             sendMessage.setTargetConversationID(targetConversationID);
                             sendMessageToTarget(targetOutput, sendMessage);
+                            logger.info("message sent to User with ID " + userID);
 
                             return true;
                         }
@@ -258,10 +259,24 @@ public class Server {
             }
         }
 
-        private synchronized boolean validateClient(Message validateMessage) throws InvalidUserException {
+        private synchronized boolean validateClient(Message validateMessage) throws IOException, InvalidUserException {
             boolean isValid = false;
 
-            logger.info(validateMessage.getName() + " is trying to connect with password " + validateMessage.getPassword());
+            logger.info(validateMessage.getName() + " is trying to login");
+            
+            if (names.get(validateMessage.getName()) == null) {
+                sendErrorToUser("This user do not exist, please register a new one");
+                return isValid;
+            }
+
+            // Check if user is already online
+            int userID = names.get(validateMessage.getName()).getID();
+            if (onlineUserMap.get(userID) != null) {
+                logger.info("User " + validateMessage.getName() + " is already online");
+                sendErrorToUser("You are already online, please check again");
+                return isValid;
+            }
+
             try (Connection connection = DatabaseManager.getConnection()) {
                 logger.info("getConnection() exit");
                 if (connection != null) {
@@ -272,28 +287,33 @@ public class Server {
                 }
 
                 try (PreparedStatement st = connection.prepareStatement(
-                        "SELECT user_name, password FROM User WHERE user_name=? AND password=?")) {
-                    st.setString(1, validateMessage.getName());
-                    st.setString(2, validateMessage.getPassword());
+                        "SELECT password FROM User WHERE user_id=?")) {
+                    st.setInt(1, userID);
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
+
+                            String hashedPassword = rs.getString("password");
+                            if (!BCrypt.checkpw(validateMessage.getPassword(), hashedPassword)) {
+                                // password not match
+                                logger.info("Wrong password");
+                                sendErrorToUser("Wrong password, please check again");
+                                return false;
+                            }
+
+                            // Add to online user map
+                            onlineUserMap.put(userID, userMap.get(userID));
+
                             // Send this to allow this user to login
                             logger.info("Correct password");
                             Message msg = new Message();
-                            msg.setType(MessageType.ACCEPTED);
+                            msg.setType(MessageType.S_LOGIN);
                             msg.setName(validateMessage.getName());
                             sendMessageToTarget(this.output, msg);
                             isValid = true;
 
-                            // 
-
                         } else {
-                            logger.info("Incorrect password!");
-                            Message msg = new Message();
-                            msg.setMsg("Wrong username or password, please try again");
-                            msg.setType(MessageType.DECLINED);
-                            msg.setName("SERVER");
-                            sendMessageToTarget(this.output, msg);
+                            logger.info("Cannot found user in database!");
+                            sendErrorToUser("Cannot found user in database!");
                         }
                     }
                     return isValid;
@@ -310,8 +330,7 @@ public class Server {
 
         private synchronized boolean registerClient(Message registerMessage) throws InvalidUserException {
         
-            logger.info(registerMessage.getName() + " is trying to create an account with password " + registerMessage.getPassword());
-            boolean isValid = false;
+            logger.info(registerMessage.getName() + " is trying to create an account");
         
             try (Connection connection = DatabaseManager.getConnection()) {
                 logger.info("getConnection() exit");
@@ -330,53 +349,52 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             logger.info("Username exists: " + registerMessage.getName());
-                            Message msg = new Message();
-                            msg.setMsg("User with name " + registerMessage.getName() + " already exists, please try login");
-                            msg.setType(MessageType.DECLINED);
-                            msg.setName("SERVER");
-                            sendMessageToTarget(this.output, msg);
+                            sendErrorToUser("User with name " + registerMessage.getName() + " already exists, please try login");
                             return false;
                         }
                     }
                 }
         
-                // Insert the new user if the username does not exist
-                try (PreparedStatement st = connection.prepareStatement(
-                    "INSERT INTO User (user_name, password, is_online, create_datetime) VALUES (?, ?, ?, NOW())")) {
-                    st.setString(1, registerMessage.getName());
-                    st.setString(2, registerMessage.getPassword());
-                    st.setBoolean(3, false);
-        
-                    int affectedRows = st.executeUpdate();
-                    if (affectedRows > 0) {
-                        logger.info("A new user has been inserted successfully: " + registerMessage.getName());
-                        Message msg = new Message();
-                        msg.setMsg("User with name " + registerMessage.getName() + " is created, please login to continue");
-                        msg.setType(MessageType.REGISTER_SUCCESS);
-                        msg.setName("SERVER");
-                        sendMessageToTarget(this.output, msg);
-                        User user= new User();
-                        user.setName(registerMessage.getName());
-                        user.setStatus(Status.ONLINE);
-                        int getID=-1;
-                        try (PreparedStatement stToGetId = connection.prepareStatement(
-                                "SELECT user_id FROM User WHERE user_name = ?")){
-                        	stToGetId.setString(1, user.getName());
-                        	try(ResultSet rsToGetId=stToGetId.executeQuery()){
-                        		if (rsToGetId.next()) {
-                        			getID=rsToGetId.getInt("user_id");
-                        		}
-                        	}
-                        }
-                        user.setID(getID);
 
-                        return false;
+                // Hash the password
+                String hashedPassword = BCrypt.hashpw(registerMessage.getPassword(), BCrypt.gensalt());
+
+                // Insert the new user if the username does not exist
+                String insertUserSQL = "INSERT INTO User (user_name, password, is_online, create_datetime) VALUES (?, ?, ?, NOW())";
+                try (PreparedStatement insertUserStmt = connection.prepareStatement(insertUserSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    insertUserStmt.setString(1, registerMessage.getName());
+                    insertUserStmt.setString(2, hashedPassword);
+                    insertUserStmt.setBoolean(3, false);
+
+                    int affectedRows = insertUserStmt.executeUpdate();
+                    if (affectedRows > 0) {
+                        try (ResultSet generatedKeys = insertUserStmt.getGeneratedKeys()) {
+                            if (generatedKeys.next()) {
+                                int userId = generatedKeys.getInt(1);
+
+                                logger.info("A new user has been inserted successfully: " + registerMessage.getName());
+                                Message msg = new Message();
+                                msg.setMsg("User with name " + registerMessage.getName() + " is created, please login to continue");
+                                msg.setType(MessageType.S_REGISTER);
+                                msg.setName("SERVER");
+                                sendMessageToTarget(this.output, msg);
+
+                                User user = new User();
+                                user.setName(registerMessage.getName());
+                                user.setID(userId);
+
+                                names.put(user.getName(), user);
+                                userMap.put(userId, user);
+
+                                return true;
+                            } else {
+                                logger.error("Failed to retrieve user ID for new user: " + registerMessage.getName());
+                            }
+                        }
                     } else {
                         logger.error("Failed to insert new user: " + registerMessage.getName());
-                        return false;
                     }
                 }
-        
             } catch (SQLException sqlException) {
                 logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
                 
@@ -676,8 +694,7 @@ public class Server {
             if (user != null) {
                 onlineUserMap.remove(user.getID());
                 // logger.info("User object: " + user + " has been removed!");
-            }
-            if (output != null) {
+
                 writers.remove(user.getID());
                 // logger.info("Writer object: " + output + " has been removed!");
             }
@@ -693,8 +710,15 @@ public class Server {
                 e.printStackTrace();
             }
             */
-            logger.info("HashMap names:" + names.size() + " writers:" + writers.size() + " usersList size:" + users.size());
             logger.debug("closeConnections() method Exit");
+        }
+
+        private void sendErrorToUser (String message) throws IOException {
+            Message msg = new Message();
+            msg.setMsg(message);
+            msg.setType(MessageType.S_ERROR);
+            msg.setName("SERVER");
+            sendMessageToTarget(this.output, msg);
         }
 
         private void closeQuietly(Closeable closeable) {
