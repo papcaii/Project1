@@ -14,7 +14,11 @@ public enum MessageType {
     DECLINED, 
     REGISTER, 
     REGISTER_SUCCESS,
-    UPDATE_USER,  
+    UPDATE_USER,
+    S_LOGIN,
+    C_LOGIN,
+    S_REGISTER,
+    C_REGISTER,  
     S_FRIEND_REQUEST,
     C_FRIEND_REQUEST,
     S_GET_FRIEND_REQUEST,
@@ -24,5 +28,7 @@ public enum MessageType {
     S_CONVERSATION_CHAT,
     C_CONVERSATION_CHAT,
     S_CREATE_FRIEND_SHIP,
-    C_CREATE_FRIEND_SHIP
+    C_CREATE_FRIEND_SHIP,
+    S_ERROR,
+    C_ERROR
 }

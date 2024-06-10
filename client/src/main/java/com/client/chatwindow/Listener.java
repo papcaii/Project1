@@ -131,19 +131,15 @@ public class Listener implements Runnable {
                         case STATUS:
                             chatCon.getInstance().setUserListView(message);
                             break;
-                        case ACCEPTED:
+                        case S_LOGIN:
                             this.isValid = true;
                             this.username = message.getName();
                             logger.info("Successful login");
                             LoginController.getInstance().showChatScene();
                             break;
 
-                        case DECLINED:
-                            LoginController.getInstance().showErrorDialog(message.getMsg());
-                            break;
-
-                        case REGISTER_SUCCESS:
-                            LoginController.getInstance().showErrorDialog(message.getMsg());
+                        case S_REGISTER:
+                            LoginController.getInstance().showInformationDialog(message.getMsg());
                             break;
 
                         case S_GET_FRIEND_REQUEST:
@@ -170,10 +166,15 @@ public class Listener implements Runnable {
                             if (chatCon != null) {
                                 Integer currentConversationID = chatCon.getCurrentTargetConversationID();
                                 Integer targetConversationID = message.getTargetConversationID();
+
                                 if (currentConversationID.equals(targetConversationID)) {
                                     chatCon.addMessageToChatView(message);
                                 }
                             }
+                            break;
+                        case S_ERROR:
+                            logger.info("Server promt an error with msg: " + message.getMsg());
+                            LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
                     }
                 }
@@ -214,7 +215,7 @@ public class Listener implements Runnable {
             Message validateMessage = new Message();
             validateMessage.setName(username);
             validateMessage.setPassword(password);
-            validateMessage.setType(MessageType.LOGIN);
+            validateMessage.setType(MessageType.C_LOGIN);
             this.output.writeObject(validateMessage);
             this.output.flush();
             logger.debug("Sent validation message: " + validateMessage);
@@ -236,7 +237,7 @@ public class Listener implements Runnable {
             Message registerMessage = new Message();
             registerMessage.setName(username);
             registerMessage.setPassword(password);
-            registerMessage.setType(MessageType.REGISTER);
+            registerMessage.setType(MessageType.C_REGISTER);
             this.output.writeObject(registerMessage);
             this.output.flush();
             logger.debug("Sent register message: " + registerMessage);
