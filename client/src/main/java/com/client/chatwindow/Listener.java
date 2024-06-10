@@ -271,6 +271,25 @@ public class Listener implements Runnable {
         }
     }
 
+    public void createFriendShip(String username) throws IOException, ClassNotFoundException {
+    	logger.info("createFriendShip() method enter");
+    	try {
+            Message friendShipMessage = new Message();
+            friendShipMessage.setName(username);
+            friendShipMessage.setType(MessageType.C_CREATE_FRIEND_SHIP);
+            this.output.writeObject(friendShipMessage);
+            this.output.flush();
+            logger.debug("Create FriendShip: " + friendShipMessage);
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+    
     public void getFriendRequest() throws IOException {
         try {
             Message msg = new Message();
