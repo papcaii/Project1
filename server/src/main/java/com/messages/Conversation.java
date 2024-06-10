@@ -15,6 +15,13 @@ public class Conversation implements Serializable {
 	
 	public Conversation() {}
 	
+	public Conversation(ArrayList<User> members,boolean isGroup, User groupMaster) {
+		super();
+		this.isGroup=isGroup;
+		this.members=members;
+		this.groupMaster=groupMaster;
+	}
+	
 	public Conversation(int conversationId, ArrayList<User> members, boolean isGroup, User groupMaster) {
 		super();
 		this.conversationId=conversationId;
