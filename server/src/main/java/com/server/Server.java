@@ -171,10 +171,9 @@ public class Server {
                             case C_CONVERSATION_CHAT:
                                 sendMessageToConversation(inputmsg);
                                 break;
-                                
-                            case C_CREATE_FRIEND_SHIP:
-                            	createFriendShip(inputmsg);
-                            	break;
+
+                            case C_UPDATE_CONVERSATION:
+                                getUserConversation(this.user.getID());
                         }
                     }
                 }
@@ -188,6 +187,8 @@ public class Server {
                 closeConnections();
             }
         }
+
+
 
         private boolean createFriendShip(Message inputMsg) throws IOException{
         	String targetName = inputMsg.getName();
@@ -393,9 +394,6 @@ public class Server {
                                 return false;
                             }
 
-                            // Add to online user map
-                            onlineUserMap.put(userID, userMap.get(userID));
-
                             // Send this to allow this user to login
                             logger.info("Correct password");
                             Message msg = new Message();
@@ -544,7 +542,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already friends
-                            logger.info("Already friends when send friend request");
+                            logger.info("Already friends");
                             Message msg = new Message();
                             msg.setType(MessageType.S_FRIEND_REQUEST);
                             msg.setMsg("Already friends");

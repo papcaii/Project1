@@ -194,6 +194,13 @@ public class Listener implements Runnable {
         this.output.flush();
     }
 
+    public void sendUpdateConversationRequest() throws IOException {
+        Message refreshMessage = new Message();
+        refreshMessage.setType(MessageType.C_UPDATE_CONVERSATION);
+        this.output.writeObject(refreshMessage);
+        this.output.flush();
+    }
+
     /* This method is used for sending a normal Message
  * @param msg - The message which the user generates
  */
