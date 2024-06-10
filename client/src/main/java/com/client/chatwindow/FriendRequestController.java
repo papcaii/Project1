@@ -92,7 +92,23 @@ public class FriendRequestController implements Initializable {
     }
 
     public void acceptHandler(ActionEvent event) {
-        
+    	try {
+    		if (this.currentTargetName == null) {
+                showAlert("Error", "Must choose user to accept");
+                return;
+            }
+            if (listener != null) {
+                listener.createFriendShip(currentTargetName);
+            } else {
+                showAlert("Error", "Listener is not initialized");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Failed to create friendship: " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            showAlert("Error", "Not found class: " + e.getMessage());
+        }
     }
 
     public void declineHandler(ActionEvent event) {
