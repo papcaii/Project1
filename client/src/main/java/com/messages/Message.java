@@ -13,6 +13,7 @@ public class Message implements Serializable {
     private String msg;
     private ArrayList<User> userList;
     private HashMap<Integer, Conversation> conversationMap;
+    private ArrayList <Message> context; 
 
 	private String picturePath;
 	private Status status;
@@ -28,7 +29,13 @@ public class Message implements Serializable {
         return picturePath;
     }
 
-    public String getName() {
+    public ArrayList<Message> getContext() {
+		return context;
+	}
+
+
+
+	public String getName() {
         return name;
     }
 
@@ -70,8 +77,12 @@ public class Message implements Serializable {
     public void setPicture(String picture) {
         this.picturePath = picture;
     }
+    
+    public void setContext(ArrayList<Message> context) {
+		this.context = context;
+	}
 
-    public void setStatus(Status status) {
+	public void setStatus(Status status) {
         this.status = status;
     }
 
