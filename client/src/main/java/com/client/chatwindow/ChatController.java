@@ -149,6 +149,10 @@ public class ChatController implements Initializable {
         }
     }
 
+    public void refreshHandler() throws IOException {
+        this.listener.sendUpdateConversationRequest();
+    }
+
     // When a new message add to chat
     public synchronized void addMessageToChatView(Message msg) {
 
