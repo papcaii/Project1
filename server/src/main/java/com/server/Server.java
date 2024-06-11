@@ -175,6 +175,10 @@ public class Server {
                             case C_CREATE_FRIEND_SHIP:
                             	createFriendShip(inputmsg);
                             	break;
+                            	
+                            case C_SHOW_CONVERSATION_CHAT:
+                            	getContextConversation(inputmsg);
+                            	break;
                         }
                     }
                 }
@@ -273,6 +277,53 @@ public class Server {
             } catch (IOException ioException) {
                 logger.error("IO Exception: " + ioException.getMessage(), ioException);
                 return false;
+            }
+        }
+        
+        private void getContextConversation(Message inputMsg) throws IOException {
+        	int conID=inputMsg.getTargetConversationID();
+        	logger.debug("User with name "+inputMsg.getName() + " change to conversation with ID = {}" + conID);
+        	ArrayList<Message> context = new ArrayList<Message>();
+        	try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return ;
+                }
+
+                try (PreparedStatement st = connection.prepareStatement(
+                        "SELECT * FROM Message WHERE conversation_id=?")) {
+                    st.setInt(1, conID);
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                        	// Get all messages from conversation 
+                            Message messageGet=new Message();
+                            messageGet.setMsg(rs.getString("context"));
+                            messageGet.setName(userMap.get(rs.getInt("sender_id")));
+                            context.add(messageGet);
+
+                            // Send this to allow this user to login
+                            logger.info("Get all context from conversation {}"+conID);
+                            Message msg = new Message();
+                            msg.setType(MessageType.S_SHOW_CONVERSATION_CHAT);
+                            msg.setContext(context);
+                            sendMessageToTarget(this.output, msg);
+
+                        } else {
+                            logger.info("Cannot found conversation in database!");
+                            sendErrorToUser("Cannot found conversation in database!");
+                        }
+                    }
+                    return ;
+                }
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+            } finally {
+                //logger.info("send response to client");
             }
         }
         

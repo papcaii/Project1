@@ -237,29 +237,31 @@ public class ChatController implements Initializable {
         Platform.runLater(() -> onlineCountLabel.setText(usercount));
     }
 
-    public void setUserListView(Message msg) {
-        logger.info("setUserListView() method Enter with");
-        
-    	Platform.runLater(() -> {
-        	try {
-        	
-        		// Update user list view
-            	ObservableList<User> usersList = FXCollections.observableList(msg.getUserList());
-            	userListView.setItems(usersList);
-            	userListView.setCellFactory(new CellRenderer());
-            
-            	// Update online number
-            	int onlineCount = msg.getUserList().size();  // Assuming msg.getUsers() returns the list of users
-            	setOnlineLabel(String.valueOf(onlineCount));
-            
-            	logger.info("User list updated successfully with " + onlineCount + " users.");
-        } catch (Exception e) {
-            	logger.error("Error updating user list", e);
-        }
-    });
-        logger.info("setUserListView() method Exit");
-    }
+//    public void setUserListView(Message msg) {
+//        logger.info("setUserListView() method Enter with");
+//        
+//    	Platform.runLater(() -> {
+//        	try {
+//        	
+//        		// Update user list view
+//            	ObservableList<User> usersList = FXCollections.observableList(msg.getUserList());
+//            	userListView.setItems(usersList);
+//            	userListView.setCellFactory(new CellRenderer());
+//            
+//            	// Update online number
+//            	int onlineCount = msg.getUserList().size();  // Assuming msg.getUsers() returns the list of users
+//            	setOnlineLabel(String.valueOf(onlineCount));
+//            
+//            	logger.info("User list updated successfully with " + onlineCount + " users.");
+//        } catch (Exception e) {
+//            	logger.error("Error updating user list", e);
+//        }
+//    });
+//        logger.info("setUserListView() method Exit");
+//    }
 
+    
+    
     public void setConversationListView(Message msg) {
         logger.info("setConversationListView() method Enter");
         HashMap<Integer, Conversation> conversationMap = msg.getConversationMap();
@@ -317,6 +319,12 @@ public class ChatController implements Initializable {
         t.setDaemon(true);
         t.start();
     }
+    
+    public void showContextOfConversation(Message msg) {
+    	for (Message mes:msg.getContext()) {
+    		addMessageToChatView(mes);
+    	}
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -369,6 +377,7 @@ public class ChatController implements Initializable {
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {
                     currentTargetConversationID = newRequest.getConversationID();
+                    this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
                 } else {
                     currentTargetConversationID = -1;
