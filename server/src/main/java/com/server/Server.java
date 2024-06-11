@@ -240,7 +240,7 @@ public class Server {
                 }
 
                 // Insert new friend ship
-                String insertFriendshipQuery = "INSERT INTO FriendRequest (user1_di, user2_id, create_dt) VALUES (?, ?, NOW())";
+                String insertFriendshipQuery = "INSERT INTO FriendRequest (user1_id, user2_id, create_dt) VALUES (?, ?, NOW())";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
                 	int requestUserID = requestUser.getID();
                     int targetUserID = targetUser.getID();
