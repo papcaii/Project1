@@ -177,6 +177,10 @@ public class Listener implements Runnable {
                             logger.info("Server promt an error with msg: " + message.getMsg());
                             LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
+                        case S_SHOW_CONVERSATION_CHAT:
+                        	logger.info("User"+this.username+"get context of conversation from server");
+                        	chatCon.showContextOfConversation(message);
+                        	break;
                     }
                 }
             }
@@ -185,6 +189,15 @@ public class Listener implements Runnable {
         }
     }
 
+    public void getMessageFromConversation(int conversationID)  throws IOException {
+    	Message conversationNeeded = new Message();
+    	conversationNeeded.setName(this.username);
+    	conversationNeeded.setType(MessageType.C_SHOW_CONVERSATION_CHAT);
+    	conversationNeeded.setTargetConversationID(conversationID);
+        this.output.writeObject(conversationNeeded);
+        this.output.flush();
+    }
+    
     public void sendMessageToConversation(int conversationID, String messageContext) throws IOException {
         Message createMessage = new Message();
         createMessage.setName(this.username);
