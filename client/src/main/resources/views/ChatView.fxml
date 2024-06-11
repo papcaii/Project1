@@ -45,7 +45,7 @@
    <left>
       <VBox maxHeight="1.7976931348623157E308" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="217.0" text="Button">
+            <Button fx:id="friendRequestBtn" mnemonicParsing="false" onAction="#friendRequestHandler" prefHeight="25.0" prefWidth="217.0" text="Friend Request">
                <font>
                   <Font name="Roboto" size="12.0" />
                </font>

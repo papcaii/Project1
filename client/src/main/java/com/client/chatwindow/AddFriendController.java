@@ -77,6 +77,8 @@ public class AddFriendController implements Initializable {
             BorderPane window = fxmlLoader.load();
             chatCon = fxmlLoader.getController();
             chatCon.setListener(listener);
+            chatCon.setUsernameLabel(this.listener.username);
+            this.listener.setChatController(chatCon);
 
             Stage stage = MainLauncher.getPrimaryStage();
             Scene scene = new Scene(window);
