@@ -747,8 +747,8 @@ public class Server {
                 // Make friendship
                 String insertFriendshipQuery = "INSERT INTO Friendship (user1_id, user2_id, create_datetime, conversation_id) VALUES (?, ?, NOW(), ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
-                    st.setInt(1, requestID);
-                    st.setInt(2, receiverID);
+                    st.setInt(1, Math.min(requestID, receiverID));
+                    st.setInt(2, Math.max(requestID, receiverID));
                     st.setInt(3, conversationID);
 
                     int affectedRows = st.executeUpdate();
