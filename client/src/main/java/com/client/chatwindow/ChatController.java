@@ -54,7 +54,7 @@ public class ChatController implements Initializable {
     @FXML private TextArea messageBox;
     @FXML private Label usernameLabel;
     @FXML private Label onlineCountLabel;
-    @FXML private ListView userListView;
+    @FXML private ListView<Conversation> userListView;
     @FXML private ImageView userImageView;
     @FXML private ListView chatPane;
     @FXML ListView statusList;

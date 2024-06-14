@@ -199,10 +199,10 @@ public class Server {
 
 
 
-        private boolean createFriendShip(Message inputMsg) throws IOException, SQLException{
+        private boolean createFriendShip(Message inputMsg) throws IOException, SQLException, InvalidUserException{
         	String targetName = inputMsg.getName();
         	logger.debug("User "+name + " accept friend request from "+targetName);
-            boolean isValid = true;
+            //boolean isValid = true;
 
             if (names.get(targetName) == null) {
                 // Target user does not exist
