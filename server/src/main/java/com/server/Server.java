@@ -559,26 +559,28 @@ public class Server {
             return isValid;
         }
         
-        // Add friend and create conversation
+        // send friend request
         private synchronized boolean sendFriendRequest(Message inputMsg) throws IOException, InvalidUserException {
             String targetName = inputMsg.getName();
-            boolean isValid = true;
+            //boolean isValid = true;
 
             if (names.get(targetName) == null) {
                 // Target user does not exist
-                Message msg = new Message();
-                msg.setType(MessageType.S_FRIEND_REQUEST);
-                msg.setMsg("User does not exist");
-                sendMessageToTarget(output, msg);
+            	sendErrorToUser("User "+targetName+" does not exist");
+//                Message msg = new Message();
+//                msg.setType(MessageType.S_FRIEND_REQUEST);
+//                msg.setMsg("User does not exist");
+//                sendMessageToTarget(output, msg);
                 return false;
             }
 
             if (targetName.equals(name)) {
                 // Send request to themselves
-                Message msg = new Message();
-                msg.setType(MessageType.S_FRIEND_REQUEST);
-                msg.setMsg("Cannot send request to yourself");
-                sendMessageToTarget(output, msg);
+            	sendErrorToUser("Cannot send request to yourself");
+//                Message msg = new Message();
+//                msg.setType(MessageType.S_FRIEND_REQUEST);
+//                msg.setMsg("Cannot send request to yourself");
+//                sendMessageToTarget(output, msg);
                 return false;
             }
 
@@ -602,11 +604,12 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already friends
-                            logger.info("Already friends");
-                            Message msg = new Message();
-                            msg.setType(MessageType.S_FRIEND_REQUEST);
-                            msg.setMsg("Already friends");
-                            sendMessageToTarget(output, msg);
+                            //logger.info("Already friends");
+                            sendErrorToUser("You and "+targetName+" already are friends!");
+//                            Message msg = new Message();
+//                            msg.setType(MessageType.S_FRIEND_REQUEST);
+//                            msg.setMsg("Already friends");
+//                            sendMessageToTarget(output, msg);
                             return false;
                         }
                     }
@@ -623,10 +626,10 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Friend request sent from user {} to user {}", requestUserID, targetUserID);
-                        Message msg = new Message();
-                        msg.setType(MessageType.S_FRIEND_REQUEST);
-                        msg.setMsg("Successful");
-                        sendMessageToTarget(output, msg);
+//                        Message msg = new Message();
+//                        msg.setType(MessageType.S_FRIEND_REQUEST);
+//                        msg.setMsg("Successful");
+//                        sendMessageToTarget(output, msg);
                         return false;
                     } else {
                         logger.error("Failed to sent friend request from user {} to user {}", requestUserID, targetUserID);
@@ -752,7 +755,7 @@ public class Server {
                     if (affectedRows > 0) {
                         logger.info("Friendship sent between user {} to user {} has been made", requestID, receiverID);
                         Message msg = new Message();
-                        msg.setType(MessageType.S_FRIEND_REQUEST);
+                        msg.setType(MessageType.S_CREATE_FRIEND_SHIP);
                         msg.setMsg("You and " + message.getName() + " are friend now");
                         sendMessageToTarget(output, msg);
                         return false;
@@ -831,7 +834,8 @@ public class Server {
             logger.info("createConversation() method exit");
             return createConversationID;
         }
-
+        
+        //Return the list of conversation view of client 
         private synchronized void getUserConversation(int userID) throws IOException {            
             try (Connection connection = DatabaseManager.getConnection()) {
                 HashMap<Integer, Conversation> userConversationMap = new HashMap<>();

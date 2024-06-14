@@ -142,9 +142,13 @@ public class Listener implements Runnable {
                             LoginController.getInstance().showInformationDialog(message.getMsg());
                             break;
 
+                        case S_FRIEND_REQUEST:
+                        	//sendFriendRequestSuccess(message);
+                        	break;
+                        
                         case S_GET_FRIEND_REQUEST:
                             ArrayList<Conversation> requestList = new ArrayList<>(message.getConversationMap().values());
-                            friendRequestCon.getInstance().setConversationListView(requestList);
+                            friendRequestCon.getInstance().setUserListView(requestList);
                             break;
 
                         case S_UPDATE_CONVERSATION:

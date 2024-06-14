@@ -74,8 +74,8 @@ public class FriendRequestController implements Initializable {
         this.listener = listener;
     }
 
-    public void setConversationListView(ArrayList<Conversation> userConversationList) {
-        logger.info("setConversationListView() method Enter");
+    public void setUserListView(ArrayList<Conversation> userConversationList) {
+        logger.info("setUserListView() method Enter");
         
         Platform.runLater(() -> {
             try {
