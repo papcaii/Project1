@@ -28,8 +28,8 @@ public class Listener implements Runnable {
     private String hostname;
     private int port;
 
-    private String username;
-    private String password;
+    public String username;
+    public String password;
 
     public ChatController chatCon;
     public FriendRequestController friendRequestCon;
@@ -157,8 +157,9 @@ public class Listener implements Runnable {
                                     logger.error("Thread was interrupted", e);
                                 }
                             }
+                            logger.info("Get conversation map " + message.getConversationMap());
                             chatCon.getInstance().setConversationListView(message);
-                            this.conversationMap = message.getConversationMap();
+                            // this.conversationMap = message.getConversationMap();
                             break;
 
                         case S_CONVERSATION_CHAT:

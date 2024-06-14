@@ -123,7 +123,9 @@ public class FriendRequestController implements Initializable {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/ChatView.fxml"));
             BorderPane window = fxmlLoader.load();
             chatCon = fxmlLoader.getController();
-            chatCon.setListener(listener);
+            chatCon.setListener(this.listener);
+            chatCon.setUsernameLabel(this.listener.username);
+            this.listener.setChatController(chatCon);
 
             Stage stage = MainLauncher.getPrimaryStage();
             Scene scene = new Scene(window);

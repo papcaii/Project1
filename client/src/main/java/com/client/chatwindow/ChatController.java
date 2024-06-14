@@ -269,7 +269,8 @@ public class ChatController implements Initializable {
     public void setConversationListView(Message msg) {
         logger.info("setConversationListView() method Enter");
         HashMap<Integer, Conversation> conversationMap = msg.getConversationMap();
-        
+        logger.info("Size of conversationMap: " + conversationMap.size());
+
         Platform.runLater(() -> {
             try {
                 // Update user list view
