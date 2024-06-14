@@ -377,7 +377,7 @@ public class ChatController implements Initializable {
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {
                     currentTargetConversationID = newRequest.getConversationID();
-                    this.listener.getMessageFromConversation(currentTargetConversationID);
+                    //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
                 } else {
                     currentTargetConversationID = -1;
