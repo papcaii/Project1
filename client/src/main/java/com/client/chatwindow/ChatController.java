@@ -54,7 +54,7 @@ public class ChatController implements Initializable {
     @FXML private TextArea messageBox;
     @FXML private Label usernameLabel;
     @FXML private Label onlineCountLabel;
-    @FXML private ListView userListView;
+    @FXML private ListView<Conversation> userListView;
     @FXML private ImageView userImageView;
     @FXML private ListView chatPane;
     @FXML ListView statusList;
@@ -382,7 +382,7 @@ public class ChatController implements Initializable {
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {
                     currentTargetConversationID = newRequest.getConversationID();
-                    this.listener.getMessageFromConversation(currentTargetConversationID);
+                    //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
                 } else {
                     currentTargetConversationID = -1;

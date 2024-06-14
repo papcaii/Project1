@@ -123,13 +123,13 @@ public class Listener implements Runnable {
                             chatCon.getInstance().addAsServer(message);
                             break;
                         case CONNECTED:
-                            chatCon.getInstance().setUserListView(message);
+                            chatCon.getInstance().setConversationListView(message);
                             break;
                         case DISCONNECTED:
-                            chatCon.getInstance().setUserListView(message);
+                            chatCon.getInstance().setConversationListView(message);
                             break;
                         case STATUS:
-                            chatCon.getInstance().setUserListView(message);
+                            chatCon.getInstance().setConversationListView(message);
                             break;
                         case S_LOGIN:
                             this.isValid = true;
