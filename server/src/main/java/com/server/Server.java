@@ -199,7 +199,7 @@ public class Server {
 
 
 
-        private boolean createFriendShip(Message inputMsg) throws IOException{
+        private boolean createFriendShip(Message inputMsg) throws IOException, SQLException{
         	String targetName = inputMsg.getName();
         	logger.debug("User "+name + " accept friend request from "+targetName);
             boolean isValid = true;
@@ -286,7 +286,7 @@ public class Server {
             }
         }
         
-        private void getContextConversation(Message inputMsg) throws IOException {
+        private void getContextConversation(Message inputMsg) throws SQLException, IOException {
         	int conID=inputMsg.getTargetConversationID();
         	logger.debug("User with name "+inputMsg.getName() + " change to conversation with ID = {}" + conID);
         	ArrayList<Message> context = new ArrayList<Message>();
@@ -307,7 +307,7 @@ public class Server {
                         	// Get all messages from conversation 
                             Message messageGet=new Message();
                             messageGet.setMsg(rs.getString("context"));
-                            messageGet.setName(userMap.get(rs.getInt("sender_id")));
+                            messageGet.setName(userMap.get(rs.getInt("sender_id")).getName());
                             context.add(messageGet);
 
                             // Send this to allow this user to login
