@@ -194,7 +194,7 @@ public class Listener implements Runnable {
 
                         // load message of a specific conversation
                         case S_SHOW_CONVERSATION_CHAT:
-                        	logger.info("User"+this.username+"get context of conversation from server");
+                        	logger.info("User" + this.username + "get context of conversation from server");
                         	chatCon.showContextOfConversation(message);
                         	break;
                     }

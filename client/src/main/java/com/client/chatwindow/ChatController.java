@@ -142,6 +142,7 @@ public class ChatController implements Initializable {
             // Set stage size to match scene size
             stage.setWidth(window.getPrefWidth());
             stage.setHeight(window.getPrefHeight());
+            stage.sizeToScene();
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
@@ -234,37 +235,11 @@ public class ChatController implements Initializable {
             t.start();
         }
     }
-    
 
 	// Change number of online user
     public void setOnlineLabel(String usercount) {
         Platform.runLater(() -> onlineCountLabel.setText(usercount));
     }
-
-//    public void setUserListView(Message msg) {
-//        logger.info("setUserListView() method Enter with");
-//        
-//    	Platform.runLater(() -> {
-//        	try {
-//        	
-//        		// Update user list view
-//            	ObservableList<User> usersList = FXCollections.observableList(msg.getUserList());
-//            	userListView.setItems(usersList);
-//            	userListView.setCellFactory(new CellRenderer());
-//            
-//            	// Update online number
-//            	int onlineCount = msg.getUserList().size();  // Assuming msg.getUsers() returns the list of users
-//            	setOnlineLabel(String.valueOf(onlineCount));
-//            
-//            	logger.info("User list updated successfully with " + onlineCount + " users.");
-//        } catch (Exception e) {
-//            	logger.error("Error updating user list", e);
-//        }
-//    });
-//        logger.info("setUserListView() method Exit");
-//    }
-
-    
     
     public void setConversationListView(Message msg) {
         logger.info("setConversationListView() method Enter");
@@ -326,15 +301,21 @@ public class ChatController implements Initializable {
     }
     
     public void showContextOfConversation(Message msg) {
-    	for (Message mes:msg.getContext()) {
-    		addMessageToChatView(mes);
-    	}
+        Platform.runLater(() -> {
+            // clear the chat listview
+            chatPane.getItems().clear();
+
+            // add message to it
+            for (Message mes : msg.getContext()) {
+                addMessageToChatView(mes);
+            }
+        });
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
     
-                /* Drag and Drop */
+        /* Drag and Drop */
         borderPane.setOnMousePressed(event -> {
             xOffset = MainLauncher.getPrimaryStage().getX() - event.getScreenX();
             yOffset = MainLauncher.getPrimaryStage().getY() - event.getScreenY();
@@ -350,19 +331,6 @@ public class ChatController implements Initializable {
         borderPane.setOnMouseReleased(event -> {
             borderPane.setCursor(Cursor.DEFAULT);
         });
-
-		
-		/* track status changed
-        statusComboBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                try {
-                    Listener.sendStatusUpdate(Status.valueOf(newValue.toUpperCase()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        */
 
         /* Added to prevent the enter from adding a new line to inputMessageBox */
         messageBox.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
@@ -384,7 +352,12 @@ public class ChatController implements Initializable {
                     currentTargetConversationID = newRequest.getConversationID();
                     //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
-
+                    try {
+                        getMessageFromConversation(currentTargetConversationID);
+                    } catch (IOException e) {
+                        logger.error("Error getting message from conversation", e);
+                        // Handle the error, e.g., show an alert to the user
+                    }
                 } else {
                     currentTargetConversationID = -1;
                     logger.info("ListView selection cleared.");
@@ -393,4 +366,9 @@ public class ChatController implements Initializable {
         });
 
     }
+
+    public void getMessageFromConversation(int targetConversationID) throws IOException {
+        this.listener.getMessageFromConversation(targetConversationID);
+    }
+
 }

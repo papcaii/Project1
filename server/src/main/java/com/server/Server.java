@@ -287,6 +287,7 @@ public class Server {
 //            }
 //        }
         
+        // when client request to load message of conversation
         private void getContextConversation(Message inputMsg) throws SQLException, IOException {
         	int conID=inputMsg.getTargetConversationID();
         	logger.debug("User with name "+inputMsg.getName() + " change to conversation with ID = {}" + conID);
@@ -301,28 +302,25 @@ public class Server {
                 }
 
                 try (PreparedStatement st = connection.prepareStatement(
-                        "SELECT * FROM Message WHERE conversation_id=?")) {
+                        "SELECT * FROM Message WHERE conversation_id=? ORDER BY sent_datetime ASC")) {
                     st.setInt(1, conID);
                     try (ResultSet rs = st.executeQuery()) {
-                        if (rs.next()) {
+                        while (rs.next()) {
                         	// Get all messages from conversation 
                             Message messageGet=new Message();
                             messageGet.setMsg(rs.getString("context"));
                             messageGet.setName(userMap.get(rs.getInt("sender_id")).getName());
                             context.add(messageGet);
-
-                            // Send this to allow this user to login
-                            logger.info("Get all context from conversation {}"+conID);
-                            Message msg = new Message();
-                            msg.setType(MessageType.S_SHOW_CONVERSATION_CHAT);
-                            msg.setContext(context);
-                            sendMessageToTarget(this.output, msg);
-
-                        } else {
-                            logger.info("Cannot found conversation in database!");
-                            sendErrorToUser("Cannot found conversation in database!");
                         }
                     }
+
+                    // Send this to allow this user to login
+                    logger.info("Get all context from conversation {}"+conID);
+                    Message msg = new Message();
+                    msg.setType(MessageType.S_SHOW_CONVERSATION_CHAT);
+                    msg.setContext(context);
+                    sendMessageToTarget(this.output, msg);
+
                     return ;
                 }
             } catch (SQLException sqlException) {
@@ -578,6 +576,9 @@ public class Server {
             User requestUser = names.get(name);
             User targetUser = names.get(targetName);
 
+            int requestUserID = requestUser.getID();
+            int targetUserID = targetUser.getID();
+
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
                     logger.error("Cannot connect to database!");
@@ -587,8 +588,6 @@ public class Server {
                 // Check if they are already friends
                 String checkFriendshipQuery = "SELECT * FROM Friendship WHERE user1_id=? AND user2_id=?";
                 try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
-                    int requestUserID = requestUser.getID();
-                    int targetUserID = targetUser.getID();
                     st.setInt(1, Math.min(requestUserID, targetUserID));
                     st.setInt(2, Math.max(requestUserID, targetUserID));
 
@@ -619,8 +618,7 @@ public class Server {
                 // Insert new friend request
                 String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id, create_dt) VALUES (?, ?, NOW())";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
-                    int requestUserID = requestUser.getID();
-                    int targetUserID = targetUser.getID();
+
                     st.setInt(1, requestUserID);
                     st.setInt(2, targetUserID);
 
