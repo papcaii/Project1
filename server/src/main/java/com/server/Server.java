@@ -170,11 +170,7 @@ public class Server {
                             case C_CONVERSATION_CHAT:
                                 sendMessageToConversation(inputmsg);
                                 break;
-                                
-//                            case C_CREATE_FRIEND_SHIP:
-//                            	createFriendShip(inputmsg);
-//                            	break;
-                            	
+
                             case C_SHOW_CONVERSATION_CHAT:
                             	getContextConversation(inputmsg);
                             	break;

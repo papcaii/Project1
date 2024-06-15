@@ -15,20 +15,10 @@ public class Conversation implements Serializable {
 	
 	public Conversation() {}
 	
-	public Conversation(int conversationId, ArrayList<User> members, boolean isGroup, User groupMaster) {
-		super();
-		this.conversationId=conversationId;
-		this.isGroup = isGroup;
-		this.members = members;
-		this.groupMaster = groupMaster;
-		this.members.add(groupMaster);
-	}
 	public ArrayList<User> getMembers() {
 		return members;
 	}
-	public void setMembers(ArrayList<User> members) {
-		this.members = members;
-	}
+
 	public boolean isGroup() {
 		return isGroup;
 	}

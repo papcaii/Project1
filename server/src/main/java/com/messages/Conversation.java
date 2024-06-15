@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Conversation implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	
 	private int conversationId;
 	private String conversationName;
@@ -11,35 +13,12 @@ public class Conversation implements Serializable {
 	private boolean isGroup;
 	private User groupMaster;
 	
-	public Conversation() {
-		conversationId=-1;
-		conversationName=null;
-		members=null;
-		isGroup=false;
-		groupMaster=null;
-	}
+	public Conversation() {}
 	
-	public Conversation(ArrayList<User> members,boolean isGroup, User groupMaster) {
-		super();
-		this.isGroup=isGroup;
-		this.members=members;
-		this.groupMaster=groupMaster;
-	}
-	
-	public Conversation(int conversationId, ArrayList<User> members, boolean isGroup, User groupMaster) {
-		super();
-		this.conversationId=conversationId;
-		this.isGroup = isGroup;
-		this.members = members;
-		this.groupMaster = groupMaster;
-		this.members.add(groupMaster);
-	}
 	public ArrayList<User> getMembers() {
 		return members;
 	}
-	public void setMembers(ArrayList<User> members) {
-		this.members = members;
-	}
+
 	public boolean isGroup() {
 		return isGroup;
 	}

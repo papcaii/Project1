@@ -53,9 +53,9 @@ public class AddFriendController implements Initializable {
                 return;
             }
 
+            // listener send accept action to server
             if (listener != null) {
                 listener.addFriend(name);
-                returnHandler();
             } else {
                 showAlert("Error", "Listener is not initialized");
             }
