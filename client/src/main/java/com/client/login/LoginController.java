@@ -242,7 +242,7 @@ public class LoginController implements Initializable {
 
     }
 
-    /* This displays an alert message to the user */
+    /* This displays an notification message to the user */
     public static void showInformationDialog(String message) {
         Platform.runLater(()-> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);

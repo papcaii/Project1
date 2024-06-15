@@ -183,6 +183,9 @@ public class Server {
                                 createFriendship(inputmsg);
                                 break;
 
+                            case C_DECLINE_FRIEND_REQUEST:
+                                declineFriendRequest(inputmsg);
+
                         }
                     }
                 }
@@ -563,20 +566,12 @@ public class Server {
             if (names.get(targetName) == null) {
                 // Target user does not exist
             	sendErrorToUser("User "+targetName+" does not exist");
-//                Message msg = new Message();
-//                msg.setType(MessageType.S_FRIEND_REQUEST);
-//                msg.setMsg("User does not exist");
-//                sendMessageToTarget(output, msg);
                 return false;
             }
 
             if (targetName.equals(name)) {
                 // Send request to themselves
             	sendErrorToUser("Cannot send request to yourself");
-//                Message msg = new Message();
-//                msg.setType(MessageType.S_FRIEND_REQUEST);
-//                msg.setMsg("Cannot send request to yourself");
-//                sendMessageToTarget(output, msg);
                 return false;
             }
 
@@ -600,12 +595,22 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already friends
-                            //logger.info("Already friends");
                             sendErrorToUser("You and "+targetName+" already are friends!");
-//                            Message msg = new Message();
-//                            msg.setType(MessageType.S_FRIEND_REQUEST);
-//                            msg.setMsg("Already friends");
-//                            sendMessageToTarget(output, msg);
+                            return false;
+                        }
+                    }
+                }
+
+                // Check if there are already friend request
+                String checkFriendRequestQuery = "SELECT * FROM FriendRequest WHERE sender_id=? AND receiver_id=?";
+                try (PreparedStatement st = connection.prepareStatement(checkFriendRequestQuery)) {
+                    st.setInt(1, requestUserID);
+                    st.setInt(2, targetUserID);
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            // Already request
+                            sendNotificationToUser("You have already sent request to "+targetName+", please wait them to accept");
                             return false;
                         }
                     }
@@ -622,13 +627,11 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Friend request sent from user {} to user {}", requestUserID, targetUserID);
-//                        Message msg = new Message();
-//                        msg.setType(MessageType.S_FRIEND_REQUEST);
-//                        msg.setMsg("Successful");
-//                        sendMessageToTarget(output, msg);
+                        sendNotificationToUser("Successfully sent friend request to user " + targetName);
                         return false;
                     } else {
                         logger.error("Failed to sent friend request from user {} to user {}", requestUserID, targetUserID);
+                        sendErrorToUser("Fail to sent friend request to user " + targetName);
                         return false;
                     }
                 }
@@ -750,15 +753,53 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Friendship sent between user {} to user {} has been made", requestID, receiverID);
-                        Message msg = new Message();
-                        msg.setType(MessageType.S_CREATE_FRIEND_SHIP);
-                        msg.setMsg("You and " + message.getName() + " are friend now");
-                        sendMessageToTarget(output, msg);
-                        return false;
+                        // Message msg = new Message();
+                        // msg.setType(MessageType.S_CREATE_FRIEND_SHIP);
+                        // msg.setMsg("You and " + message.getName() + " are friend now");
+                        // sendMessageToTarget(output, msg);
+                        sendNotificationToUser("You and " + message.getName() + " are friend now");
+                        return true;
                     } else {
-                        logger.error("Failed to sent friend request from user {} to user {}", requestID, receiverID);
+                        logger.error("Failed to accept friend request from user {}", requestID);
                         return false;
                     }
+                }
+
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                return false;
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+                return false;
+            }
+        }
+
+        private boolean declineFriendRequest(Message message) throws InvalidUserException {
+            User requestUser = names.get(message.getName());
+            int requestID = requestUser.getID();
+            int receiverID = this.user.getID();
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
+                    return false;
+                }
+
+                // Delete friend request
+                String deleteFriendRequestQuery = "DELETE FROM FriendRequest WHERE sender_id=? AND receiver_id=?";
+                try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
+                    st.setInt(1, requestID);
+                    st.setInt(2, receiverID);
+
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        sendNotificationToUser("Successfully delete friend request from " + message.getName());
+                    } else {
+                        logger.error("Cant delete friend request or not exist");
+                        sendNotificationToUser("Fail to delete friend request from " + message.getName());
+                        return false;
+                    }
+                    return true;
                 }
 
             } catch (SQLException sqlException) {
@@ -928,6 +969,14 @@ public class Server {
             Message msg = new Message();
             msg.setMsg(message);
             msg.setType(MessageType.S_ERROR);
+            msg.setName("SERVER");
+            sendMessageToTarget(this.output, msg);
+        }
+
+        private void sendNotificationToUser(String message) throws IOException {
+            Message msg = new Message();
+            msg.setMsg(message);
+            msg.setType(MessageType.S_NOTIFICATION);
             msg.setName("SERVER");
             sendMessageToTarget(this.output, msg);
         }

@@ -1,6 +1,7 @@
 package com.client.chatwindow;
 
 import com.client.login.MainLauncher;
+import com.client.login.LoginController;
 
 import com.messages.User;
 import com.messages.Conversation;
@@ -91,27 +92,42 @@ public class FriendRequestController implements Initializable {
         logger.info("setConversationListView() method Exit");
     }
 
-    public void acceptHandler(ActionEvent event) {
-    	try {
-    		if (this.currentTargetName == null) {
-                showAlert("Error", "Must choose user to accept");
-                return;
-            }
-            if (listener != null) {
-                listener.createFriendShip(currentTargetName);
-            } else {
-                showAlert("Error", "Listener is not initialized");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to create friendship: " + e.getMessage());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            showAlert("Error", "Not found class: " + e.getMessage());
+    public void acceptHandler(ActionEvent event) throws IOException, ClassNotFoundException {
+        if (this.currentTargetName == null) {
+            showAlert("Error", "Must choose request to accept");
+            return;
         }
+
+        // Prompt user for confirmation
+        if (!LoginController.showConfirmationDialog("Do you want to accept friend request from user " + this.currentTargetName + "?")) {
+            return;
+        }
+
+        if (listener != null) {
+            listener.createFriendShip(currentTargetName);
+        } else {
+            showAlert("Error", "Listener is not initialized");
+        }
+
     }
 
-    public void declineHandler(ActionEvent event) {
+    public void declineHandler(ActionEvent event) throws IOException, ClassNotFoundException{
+
+        if (this.currentTargetName == null) {
+            showAlert("Error", "Must choose request to decline");
+            return;
+        }
+
+        // Prompt user for confirmation
+        if (!LoginController.showConfirmationDialog("Do you want to decline friend request from user " + this.currentTargetName + "?")) {
+            return;
+        }
+
+        if (listener != null) {
+            listener.declineFriendRequest(currentTargetName);
+        } else {
+            showAlert("Error", "Listener is not initialized");
+        }
 
     }
 

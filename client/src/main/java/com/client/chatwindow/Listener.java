@@ -146,11 +146,13 @@ public class Listener implements Runnable {
                         	//sendFriendRequestSuccess(message);
                         	break;
                         
+                        // When user open friend request view, fr request will be load
                         case S_GET_FRIEND_REQUEST:
                             ArrayList<Conversation> requestList = new ArrayList<>(message.getConversationMap().values());
                             friendRequestCon.getInstance().setUserListView(requestList);
                             break;
 
+                        // update list of conversation
                         case S_UPDATE_CONVERSATION:
                             while (chatCon == null) {
                                 try {
@@ -166,6 +168,7 @@ public class Listener implements Runnable {
                             // this.conversationMap = message.getConversationMap();
                             break;
 
+                        // new message sent to client
                         case S_CONVERSATION_CHAT:
                             // check if user is choosing this conversation
                             if (chatCon != null) {
@@ -177,10 +180,19 @@ public class Listener implements Runnable {
                                 }
                             }
                             break;
+
+                        // when server promt an error
                         case S_ERROR:
                             logger.info("Server promt an error with msg: " + message.getMsg());
                             LoginController.getInstance().showErrorDialog(message.getMsg());
                             break;
+
+                        case S_NOTIFICATION:
+                            logger.info("Notification from server: " + message.getMsg());
+                            LoginController.getInstance().showInformationDialog(message.getMsg());
+                            break;
+
+                        // load message of a specific conversation
                         case S_SHOW_CONVERSATION_CHAT:
                         	logger.info("User"+this.username+"get context of conversation from server");
                         	chatCon.showContextOfConversation(message);
@@ -297,25 +309,26 @@ public class Listener implements Runnable {
         }
     }
 
+    // When user accept friend request
     public void createFriendShip(String username) throws IOException, ClassNotFoundException {
     	logger.info("createFriendShip() method enter");
-    	try {
-            Message friendShipMessage = new Message();
-            friendShipMessage.setName(username);
-            friendShipMessage.setType(MessageType.C_CREATE_FRIEND_SHIP);
-            this.output.writeObject(friendShipMessage);
-            this.output.flush();
-            logger.debug("Create FriendShip: " + friendShipMessage);
+
+        Message friendShipMessage = new Message();
+        friendShipMessage.setName(username);
+        friendShipMessage.setType(MessageType.C_CREATE_FRIEND_SHIP);
+        this.output.writeObject(friendShipMessage);
+        this.output.flush();
             
-        } catch (IOException e) {
-            logger.error("Exception in connect method: " + e.getMessage(), e);
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
-            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
-        }
     }
     
+    public void declineFriendRequest(String requestUserName) throws IOException {
+        Message declineMessage = new Message();
+        declineMessage.setName(requestUserName);
+        declineMessage.setType(MessageType.C_DECLINE_FRIEND_REQUEST);
+        this.output.writeObject(declineMessage);
+        this.output.flush();
+    }
+
     public void getFriendRequest() throws IOException {
         try {
             Message msg = new Message();

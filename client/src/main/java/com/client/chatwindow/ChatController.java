@@ -384,6 +384,7 @@ public class ChatController implements Initializable {
                     currentTargetConversationID = newRequest.getConversationID();
                     //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
+
                 } else {
                     currentTargetConversationID = -1;
                     logger.info("ListView selection cleared.");
