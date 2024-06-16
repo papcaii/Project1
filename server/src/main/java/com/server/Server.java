@@ -152,6 +152,7 @@ public class Server {
                                     writers.put(user.getID(), this.output);
                                     onlineUserMap.put(user.getID(), user);
                                     logger.info(user.getName()+" login now");
+                                    updateClientStatus(user.getID(), Status.ONLINE);
                                     getUserConversation(user.getID());
                                 }
                                 break;
@@ -200,92 +201,57 @@ public class Server {
             }
         }
 
-//        private boolean createFriendShip(Message inputMsg) throws IOException, SQLException, InvalidUserException{
-//        	String targetName = inputMsg.getName();
-//        	logger.debug("User "+name + " accept friend request from "+targetName);
-//            //boolean isValid = true;
-//
-//            if (names.get(targetName) == null) {
-//                // Target user does not exist
-//                Message msg = new Message();
-//                msg.setType(MessageType.S_FRIEND_REQUEST);
-//                msg.setMsg("User does not exist");
-//                sendMessageToTarget(output, msg);
-//                return false;
-//            }
-//
-//            if (targetName.equals(name)) {
-//                // Send request to themselves
-//                Message msg = new Message();
-//                msg.setType(MessageType.S_FRIEND_REQUEST);
-//                msg.setMsg("Cannot send request to yourself");
-//                sendMessageToTarget(output, msg);
-//                return false;
-//            }
-//
-//            User requestUser = names.get(name);
-//            User targetUser = names.get(targetName);
-//
-//            try (Connection connection = DatabaseManager.getConnection()) {
-//                if (connection == null) {
-//                    logger.error("Cannot connect to database!");
-//                    return false;
-//                }
-//
-//                // Check if they are already friends
-//                String checkFriendshipQuery = "SELECT * FROM Friendship WHERE user1_id=? AND user2_id=?";
-//                try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
-//                    int requestUserID = requestUser.getID();
-//                    int targetUserID = targetUser.getID();
-//                    st.setInt(1, Math.min(requestUserID, targetUserID));
-//                    st.setInt(2, Math.max(requestUserID, targetUserID));
-//
-//                    try (ResultSet rs = st.executeQuery()) {
-//                        if (rs.next()) {
-//                            // Already friends
-//                        	sendErrorToUser("You with "+targetName+"already friend!");
-//                            return false;
-//                        }
-//                    }
-//                }
-//
-//                // Insert new friend ship
-//                String insertFriendshipQuery = "INSERT INTO FriendRequest (user1_id, user2_id, create_dt) VALUES (?, ?, NOW())";
-//                try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
-//                	int requestUserID = requestUser.getID();
-//                    int targetUserID = targetUser.getID();
-//                    st.setInt(1, Math.min(requestUserID, targetUserID));
-//                    st.setInt(2, Math.max(requestUserID, targetUserID));
-//
-//                    int affectedRows = st.executeUpdate();
-//                    if (affectedRows > 0) {
-//                    	// create conversation between new friendship
-//                        logger.info("Create friendship from user {} to user {} has the conversation Id is {}", requestUserID, targetUserID,);
-//                        try{
-//                        	Conversation newCon = createConversation(new ArrayList<>(Arrays.asList(requestUser,targetUser)));
-//                        	userConversation.put(newCon.getConversationID(), newCon);
-//                        }catch(InvalidUserException e) {
-//                        	logger.error("InvalidUser Exception: " + e.getMessage(), e);
-//                        }
-//                        Message msg = new Message();
-//                        msg.setType(MessageType.S_UPDATE_CONVERSATION);
-//                        msg.setMsg("Successful");
-//                        sendMessageToTarget(output, msg);
-//                        return false;
-//                    } else {
-//                        logger.error("Failed to sent friend request from user {} to user {}", requestUserID, targetUserID);
-//                        return false;
-//                    }
-//                }
-//
-//            } catch (SQLException sqlException) {
-//                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
-//                return false;
-//            } catch (IOException ioException) {
-//                logger.error("IO Exception: " + ioException.getMessage(), ioException);
-//                return false;
-//            }
-//        }
+        // When client change their status
+        private void updateClientStatus(int userID, Status status) {
+            int friendID;
+
+            // update in userMap
+            User user = userMap.get(userID);
+            String userName = user.getName();
+            if (user != null) {
+                user.setStatus(status);
+            }
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection == null) {
+                    logger.info("Cannot connect to database!");
+                    return ;
+                }
+
+                // send notification to this user's friends
+                String getFriendsQuery = "SELECT CASE WHEN user1_id = ? THEN user2_id ELSE user1_id END AS friend_id " +
+                                         "FROM Friendship WHERE user1_id = ? OR user2_id = ?";
+                
+                try (PreparedStatement st = connection.prepareStatement(getFriendsQuery)) {
+                    st.setInt(1, userID);
+                    st.setInt(2, userID);
+                    st.setInt(3, userID);
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                            friendID = rs.getInt("friend_id");
+                            User friend = userMap.get(friendID);
+                            
+                            // if friend is offline, skip
+                            if (friend.getStatus() == Status.OFFLINE) {
+                                continue;
+                            }
+
+                            sendNotificationToUser(writers.get(friendID), "Your friend " + userName + " is " + status.name());
+                        }
+                    }
+                }
+
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+            } finally {
+                //logger.info("send response to client");
+            }
+
+        }
         
         // when client request to load message of conversation
         private void getContextConversation(Message inputMsg) throws SQLException, IOException {
@@ -410,13 +376,14 @@ public class Server {
             return true;
         }
 
+        // When user want to login
         private synchronized boolean validateClient(Message validateMessage) throws IOException, InvalidUserException {
             boolean isValid = false;
 
             logger.info(validateMessage.getName() + " is trying to login");
             
             if (names.get(validateMessage.getName()) == null) {
-                sendErrorToUser("This user do not exist, please register a new one");
+                sendErrorToUser(this.output, "This user do not exist, please register a new one");
                 return isValid;
             }
 
@@ -424,7 +391,7 @@ public class Server {
             int userID = names.get(validateMessage.getName()).getID();
             if (onlineUserMap.get(userID) != null) {
                 logger.info("User " + validateMessage.getName() + " is already online");
-                sendErrorToUser("You are already online, please check again");
+                sendErrorToUser(this.output, "You are already online, please check again");
                 return isValid;
             }
 
@@ -447,7 +414,7 @@ public class Server {
                             if (!BCrypt.checkpw(validateMessage.getPassword(), hashedPassword)) {
                                 // password not match
                                 logger.info("Wrong password");
-                                sendErrorToUser("Wrong password, please check again");
+                                sendErrorToUser(this.output, "Wrong password, please check again");
                                 return false;
                             }
 
@@ -461,7 +428,7 @@ public class Server {
 
                         } else {
                             logger.info("Cannot found user in database!");
-                            sendErrorToUser("Cannot found user in database!");
+                            sendErrorToUser(this.output, "Cannot found user in database!");
                         }
                     }
                     return isValid;
@@ -497,7 +464,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             logger.info("Username exists: " + registerMessage.getName());
-                            sendErrorToUser("User with name " + registerMessage.getName() + " already exists, please try login");
+                            sendErrorToUser(this.output, "User with name " + registerMessage.getName() + " already exists, please try login");
                             return false;
                         }
                     }
@@ -563,13 +530,13 @@ public class Server {
 
             if (names.get(targetName) == null) {
                 // Target user does not exist
-            	sendErrorToUser("User "+targetName+" does not exist");
+            	sendErrorToUser(this.output, "User "+targetName+" does not exist");
                 return false;
             }
 
             if (targetName.equals(name)) {
                 // Send request to themselves
-            	sendErrorToUser("Cannot send request to yourself");
+            	sendErrorToUser(this.output, "Cannot send request to yourself");
                 return false;
             }
 
@@ -594,7 +561,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already friends
-                            sendErrorToUser("You and "+targetName+" already are friends!");
+                            sendErrorToUser(this.output, "You and "+targetName+" already are friends!");
                             return false;
                         }
                     }
@@ -609,7 +576,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already request
-                            sendNotificationToUser("You have already sent request to "+targetName+", please wait them to accept");
+                            sendNotificationToUser(this.output, "You have already sent request to "+targetName+", please wait them to accept");
                             return false;
                         }
                     }
@@ -625,11 +592,11 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Friend request sent from user {} to user {}", requestUserID, targetUserID);
-                        sendNotificationToUser("Successfully sent friend request to user " + targetName);
+                        sendNotificationToUser(this.output, "Successfully sent friend request to user " + targetName);
                         return false;
                     } else {
                         logger.error("Failed to sent friend request from user {} to user {}", requestUserID, targetUserID);
-                        sendErrorToUser("Fail to sent friend request to user " + targetName);
+                        sendErrorToUser(this.output, "Fail to sent friend request to user " + targetName);
                         return false;
                     }
                 }
@@ -714,7 +681,7 @@ public class Server {
                         if (rs.next()) {
                             // Already friends
                             logger.info("Already friends");
-                            sendErrorToUser("You and this user are already friend");
+                            sendErrorToUser(this.output, "You and this user are already friend");
                             return false;
                         }
                     }
@@ -755,7 +722,7 @@ public class Server {
                         // msg.setType(MessageType.S_CREATE_FRIEND_SHIP);
                         // msg.setMsg("You and " + message.getName() + " are friend now");
                         // sendMessageToTarget(output, msg);
-                        sendNotificationToUser("You and " + message.getName() + " are friend now");
+                        sendNotificationToUser(this.output, "You and " + message.getName() + " are friend now");
                         return true;
                     } else {
                         logger.error("Failed to accept friend request from user {}", requestID);
@@ -791,10 +758,10 @@ public class Server {
 
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
-                        sendNotificationToUser("Successfully delete friend request from " + message.getName());
+                        sendNotificationToUser(this.output, "Successfully delete friend request from " + message.getName());
                     } else {
                         logger.error("Cant delete friend request or not exist");
-                        sendNotificationToUser("Fail to delete friend request from " + message.getName());
+                        sendNotificationToUser(this.output, "Fail to delete friend request from " + message.getName());
                         return false;
                     }
                     return true;
@@ -874,7 +841,7 @@ public class Server {
         private synchronized void getUserConversation(int userID) throws IOException {            
             try (Connection connection = DatabaseManager.getConnection()) {
                 HashMap<Integer, Conversation> userConversationMap = new HashMap<>();
-                String conversationName;
+                User friend;
 
                 if (connection == null) {
                     logger.info("Cannot connect to database!");
@@ -882,7 +849,7 @@ public class Server {
                 }
                 logger.info("Successfully connected to the database!");
 
-                // Insert the new conversation 
+                // get friend's info and convert to conversation
                 String insertConversationSQL = "SELECT user1_id, user2_id, conversation_id FROM Friendship WHERE user1_id=? OR user2_id=?";
                 try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
                     st.setInt(1, userID);
@@ -890,14 +857,18 @@ public class Server {
 
                     try (ResultSet rs = st.executeQuery()) {
                         while (rs.next()) {
+
                             if (rs.getInt("user1_id") == userID) {
-                                conversationName = userMap.get(rs.getInt("user2_id")).getName();
+                                friend = userMap.get(rs.getInt("user2_id"));
                             } else {
-                                conversationName = userMap.get(rs.getInt("user1_id")).getName();
+                                friend = userMap.get(rs.getInt("user1_id"));
                             }
+
                             Conversation conversation = new Conversation();
                             conversation.setConversationID(rs.getInt("conversation_id"));
-                            conversation.setConversationName(conversationName);
+                            conversation.setConversationName(friend.getName());
+                            conversation.setUserStatus(friend.getStatus());
+
                             logger.info("Loaded a conversation with id " + rs.getInt("conversation_id"));
                             userConversationMap.put(rs.getInt("conversation_id"), conversation);
                         }
@@ -945,13 +916,14 @@ public class Server {
         }
 
         private synchronized void closeConnections() {
+            updateClientStatus(this.user.getID(), Status.OFFLINE);
             logger.debug("closeConnections() method Enter");
 
             if (user != null) {
-                onlineUserMap.remove(user.getID());
+                onlineUserMap.remove(this.user.getID());
                 // logger.info("User object: " + user + " has been removed!");
 
-                writers.remove(user.getID());
+                writers.remove(this.user.getID());
                 // logger.info("Writer object: " + output + " has been removed!");
             }
             closeQuietly(is);
@@ -963,20 +935,20 @@ public class Server {
             logger.debug("closeConnections() method Exit");
         }
 
-        private void sendErrorToUser (String message) throws IOException {
+        private void sendErrorToUser (ObjectOutputStream userOutput, String message) throws IOException {
             Message msg = new Message();
             msg.setMsg(message);
             msg.setType(MessageType.S_ERROR);
             msg.setName("SERVER");
-            sendMessageToTarget(this.output, msg);
+            sendMessageToTarget(userOutput, msg);
         }
 
-        private void sendNotificationToUser(String message) throws IOException {
+        private void sendNotificationToUser(ObjectOutputStream userOutput, String message) throws IOException {
             Message msg = new Message();
             msg.setMsg(message);
             msg.setType(MessageType.S_NOTIFICATION);
             msg.setName("SERVER");
-            sendMessageToTarget(this.output, msg);
+            sendMessageToTarget(userOutput, msg);
         }
 
         private void closeQuietly(Closeable closeable) {

@@ -57,13 +57,13 @@ public class ChatController implements Initializable {
     @FXML private ListView<Conversation> userListView;
     @FXML private ImageView userImageView;
     @FXML private ListView chatPane;
-    @FXML ListView statusList;
     @FXML BorderPane borderPane;
     @FXML ComboBox statusComboBox;
 
     private double xOffset;
     private double yOffset;
     
+    private Status currentStatus = Status.OFFLINE;
     private int currentTargetConversationID = -1; 
     public Listener listener;
 
@@ -273,32 +273,6 @@ public class ChatController implements Initializable {
         Platform.exit();
         System.exit(0);
     }
-
-    /* Method to display server messages */
-    
-    public synchronized void addAsServer(Message msg) {
-        Task<HBox> task = new Task<HBox>() {
-            @Override
-            public HBox call() throws Exception {
-                BubbledLabel bl6 = new BubbledLabel();
-                bl6.setText(msg.getMsg());
-                bl6.setBackground(new Background(new BackgroundFill(Color.ALICEBLUE,
-                        null, null)));
-                HBox x = new HBox();
-                bl6.setBubbleSpec(BubbleSpec.FACE_BOTTOM);
-                x.setAlignment(Pos.CENTER);
-                x.getChildren().addAll(bl6);
-                return x;
-            }
-        };
-        task.setOnSucceeded(event -> {
-            chatPane.getItems().add(task.getValue());
-        });
-
-        Thread t = new Thread(task);
-        t.setDaemon(true);
-        t.start();
-    }
     
     public void showContextOfConversation(Message msg) {
         Platform.runLater(() -> {
@@ -365,6 +339,10 @@ public class ChatController implements Initializable {
             }
         });
 
+    }
+
+    public void updateStatus(Status status) throws IOException {
+        this.listener.sendStatusUpdate(status);
     }
 
     public void getMessageFromConversation(int targetConversationID) throws IOException {

@@ -119,9 +119,6 @@ public class Listener implements Runnable {
                         case USER_MESSAGE:
                             chatCon.getInstance().addMessageToChatView(message);
                             break;
-                        case SERVER:
-                            chatCon.getInstance().addAsServer(message);
-                            break;
                         case CONNECTED:
                             chatCon.getInstance().setConversationListView(message);
                             break;
@@ -146,7 +143,7 @@ public class Listener implements Runnable {
                         	//sendFriendRequestSuccess(message);
                         	break;
                         
-                        // When user open friend request view, fr request will be load
+                        // When user open friend request view, fr request will be loaded
                         case S_GET_FRIEND_REQUEST:
                             ArrayList<Conversation> requestList = new ArrayList<>(message.getConversationMap().values());
                             friendRequestCon.getInstance().setUserListView(requestList);
@@ -237,9 +234,8 @@ public class Listener implements Runnable {
     public void sendStatusUpdate(Status status) throws IOException {
         Message createMessage = new Message();
         createMessage.setName(username);
-        createMessage.setType(MessageType.STATUS);
+        createMessage.setType(MessageType.C_UPDATE_STATUS);
         createMessage.setStatus(status);
-        createMessage.setPicture(picture);
         this.output.writeObject(createMessage);
         this.output.flush();
     }

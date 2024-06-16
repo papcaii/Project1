@@ -1,5 +1,5 @@
 package com.messages;
 
 public enum Status {
-    ONLINE, AWAY, BUSY, OFFLINE
+    ONLINE, AWAY, OFFLINE
 }

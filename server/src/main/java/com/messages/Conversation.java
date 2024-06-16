@@ -9,15 +9,11 @@ public class Conversation implements Serializable {
 	
 	private int conversationId;
 	private String conversationName;
-	private ArrayList<User> members;
 	private boolean isGroup;
 	private User groupMaster;
+	private Status userStatus;
 	
 	public Conversation() {}
-	
-	public ArrayList<User> getMembers() {
-		return members;
-	}
 
 	public boolean isGroup() {
 		return isGroup;
@@ -44,6 +40,14 @@ public class Conversation implements Serializable {
 	}
 	public void setConversationName(String conversationName) {
 		this.conversationName = conversationName;
+	}
+	
+	public Status getUserStatus() {
+		return userStatus;
+	}
+	
+	public void setUserStatus(Status status) {
+		this.userStatus = status;
 	}
 	
 }

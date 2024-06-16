@@ -54,7 +54,7 @@ class CellRenderer implements Callback<ListView<User>,ListCell<User>>{
  * A Class for Rendering conversation images / name on the userlist.
  */
 class CellRenderer implements Callback<ListView<Conversation>,ListCell<Conversation>>{
-        @Override
+	@Override
     public ListCell<Conversation> call(ListView<Conversation> p) {
 
         ListCell<Conversation> cell = new ListCell<Conversation>(){
@@ -68,12 +68,16 @@ class CellRenderer implements Callback<ListView<Conversation>,ListCell<Conversat
                     HBox hBox = new HBox();
 
                     Text name = new Text(conversation.getConversationName());
+                    
+					ImageView statusImageView = new ImageView();
+                    Image statusImage = new Image(getClass().getClassLoader().getResource("images/" + conversation.getUserStatus().name() + ".png").toString(), 16, 16,true,true);
+                    statusImageView.setImage(statusImage);
 
                     ImageView pictureImageView = new ImageView();
                     Image image = new Image(getClass().getClassLoader().getResource("images/default.png").toString(),50,50,true,true);
                     pictureImageView.setImage(image);
 
-                    hBox.getChildren().addAll(pictureImageView, name);
+                    hBox.getChildren().addAll(statusImageView, pictureImageView, name);
                     hBox.setAlignment(Pos.CENTER_LEFT);
 
                     setGraphic(hBox);
