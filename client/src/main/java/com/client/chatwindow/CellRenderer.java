@@ -69,15 +69,20 @@ class CellRenderer implements Callback<ListView<Conversation>,ListCell<Conversat
 
                     Text name = new Text(conversation.getConversationName());
                     
-					ImageView statusImageView = new ImageView();
-                    Image statusImage = new Image(getClass().getClassLoader().getResource("images/" + conversation.getUserStatus().name() + ".png").toString(), 16, 16,true,true);
-                    statusImageView.setImage(statusImage);
-
                     ImageView pictureImageView = new ImageView();
                     Image image = new Image(getClass().getClassLoader().getResource("images/default.png").toString(),50,50,true,true);
                     pictureImageView.setImage(image);
+                    
+                    if (conversation.getUserStatus() != null) {
+						ImageView statusImageView = new ImageView();
+                    	Image statusImage = new Image(getClass().getClassLoader().getResource("images/" + conversation.getUserStatus().name() + ".png").toString(), 16, 16,true,true);
+                    	statusImageView.setImage(statusImage);
 
-                    hBox.getChildren().addAll(statusImageView, pictureImageView, name);
+
+	                    hBox.getChildren().addAll(statusImageView, pictureImageView, name);
+					} else {
+						hBox.getChildren().addAll(pictureImageView, name);
+					}
                     hBox.setAlignment(Pos.CENTER_LEFT);
 
                     setGraphic(hBox);
