@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<GridPane fx:id="gridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21" fx:controller="com.client.chatwindow.ChatController">
+<GridPane fx:id="gridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.chatwindow.ChatController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="SOMETIMES" maxWidth="606.0" minWidth="10.0" prefWidth="596.0" />
@@ -29,7 +29,25 @@
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="2" GridPane.rowSpan="2">
          <children>
-            <Button fx:id="refreshButton" mnemonicParsing="false" onMouseClicked="#refreshHandler" prefHeight="39.0" prefWidth="221.0" text="Refresh chat">
+            <Button fx:id="addFriendButton" mnemonicParsing="false" onMouseClicked="#addFriendHandler" prefHeight="36.0" prefWidth="216.0" text="Add Friend   ">
+               <graphic>
+                  <ImageView fitHeight="31.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/add_friend.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button mnemonicParsing="false" onMouseClicked="#groupHandler" prefHeight="39.0" prefWidth="217.0" text="Create Group">
+               <graphic>
+                  <ImageView fitHeight="31.0" fitWidth="41.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/create_group.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Button fx:id="refreshButton" mnemonicParsing="false" onMouseClicked="#refreshHandler" prefHeight="39.0" prefWidth="221.0" text="Refresh Chat">
                <graphic>
                   <ImageView fitHeight="28.0" fitWidth="52.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -94,45 +112,6 @@
             </ImageView>
          </right>
       </BorderPane>
-      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
-         <children>
-            <Button fx:id="addFriendButton" mnemonicParsing="false" onMouseClicked="#addFriendHandler" prefHeight="45.0" prefWidth="136.0" text="Add Friend">
-               <graphic>
-                  <ImageView fitHeight="31.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/add_friend.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-            <Button mnemonicParsing="false" prefHeight="48.0" prefWidth="136.0" text="Friend Request">
-               <graphic>
-                  <ImageView fitHeight="29.0" fitWidth="42.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/group.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-            <Button mnemonicParsing="false" onMouseClicked="#groupHandler" prefHeight="38.0" prefWidth="136.0" text="Create Group">
-               <graphic>
-                  <ImageView fitHeight="31.0" fitWidth="41.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/create_group.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-            <Button mnemonicParsing="false" prefHeight="38.0" prefWidth="136.0" text="Group Invitation">
-               <graphic>
-                  <ImageView fitHeight="31.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/add_friend.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-         </children>
-      </HBox>
+      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
    </children>
 </GridPane>
