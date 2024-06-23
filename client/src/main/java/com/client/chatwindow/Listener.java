@@ -32,7 +32,7 @@ public class Listener implements Runnable {
     public String password;
 
     public ChatController chatCon;
-    public FriendRequestController friendRequestCon;
+    public AddFriendController addFriendCon;
     
     private InputStream is;
     private OutputStream os;
@@ -56,8 +56,8 @@ public class Listener implements Runnable {
         this.chatCon = chatCon;
     }
 
-    public void setFriendRequestController(FriendRequestController friendRequestCon) {
-        this.friendRequestCon = friendRequestCon;
+    public void setAddFriendController(AddFriendController addFriendCon) {
+        this.addFriendCon = addFriendCon;
     }
 
     public boolean isReady() {
@@ -116,18 +116,6 @@ public class Listener implements Runnable {
                 if (message != null) {
                     logger.info("Message recieved:" + message.getType());
                     switch (message.getType()) {
-                        case USER_MESSAGE:
-                            chatCon.getInstance().addMessageToChatView(message);
-                            break;
-                        case CONNECTED:
-                            chatCon.getInstance().setConversationListView(message);
-                            break;
-                        case DISCONNECTED:
-                            chatCon.getInstance().setConversationListView(message);
-                            break;
-                        case STATUS:
-                            chatCon.getInstance().setConversationListView(message);
-                            break;
                         case S_LOGIN:
                             this.isValid = true;
                             this.username = message.getName();
@@ -138,15 +126,20 @@ public class Listener implements Runnable {
                         case S_REGISTER:
                             LoginController.getInstance().showInformationDialog(message.getMsg());
                             break;
-
-                        case S_FRIEND_REQUEST:
-                        	//sendFriendRequestSuccess(message);
-                        	break;
                         
                         // When user open friend request view, fr request will be loaded
                         case S_GET_FRIEND_REQUEST:
+                            while (addFriendCon == null) {
+                                try {
+                                    logger.info("Waiting for addFriendCon to be initialized...");
+                                    TimeUnit.SECONDS.sleep(1);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt(); // Restore interrupted status
+                                    logger.error("Thread was interrupted", e);
+                                }
+                            }
                             ArrayList<Conversation> requestList = new ArrayList<>(message.getConversationMap().values());
-                            friendRequestCon.getInstance().setUserListView(requestList);
+                            addFriendCon.setUserListView(requestList);
                             break;
 
                         // update list of conversation

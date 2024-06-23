@@ -68,7 +68,7 @@ public class ChatController implements Initializable {
 
     private ChatController instance;
     private AddFriendController addFriendCon;
-    private FriendRequestController friendRequestCon;
+    private GroupInvitationController groupInvitationCon;
     
     Logger logger = LoggerFactory.getLogger(ChatController.class);
 
@@ -106,12 +106,15 @@ public class ChatController implements Initializable {
 
     public void addFriendHandler() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/AddFriendView.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/NewAddFriendView.fxml"));
             BorderPane window = fxmlLoader.load();
             addFriendCon = fxmlLoader.getController();
             addFriendCon.setListener(this.listener);
+            listener.setAddFriendController(addFriendCon);
+            listener.getFriendRequest();
+            logger.info("set listener to add friend controller");
 
-            Stage stage = MainLauncher.getPrimaryStage();
+            Stage stage = (Stage) messageBox.getScene().getWindow();
             Scene scene = new Scene(window);
             stage.setScene(scene);
 
@@ -126,32 +129,49 @@ public class ChatController implements Initializable {
     }
 
     public void groupHandler() {
-
-    }
-
-    public void friendRequestHandler() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/FriendRequestView.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupView.fxml"));
             BorderPane window = fxmlLoader.load();
-            friendRequestCon = fxmlLoader.getController();
-            listener.setFriendRequestController(friendRequestCon);
-            listener.getFriendRequest();
-            friendRequestCon.setListener(this.listener);
+            groupInvitationCon = fxmlLoader.getController();
+            groupInvitationCon.setListener(this.listener);
 
-            Stage stage = MainLauncher.getPrimaryStage();
+            Stage stage = (Stage) messageBox.getScene().getWindow();
             Scene scene = new Scene(window);
             stage.setScene(scene);
 
             // Set stage size to match scene size
             stage.setWidth(window.getPrefWidth());
             stage.setHeight(window.getPrefHeight());
-            stage.sizeToScene();
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
             // Consider logging the error or showing an alert to the user
         }
     }
+
+    // public void friendRequestHandler() {
+    //     try {
+    //         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/FriendRequestView.fxml"));
+    //         BorderPane window = fxmlLoader.load();
+    //         friendRequestCon = fxmlLoader.getController();
+    //         listener.setFriendRequestController(friendRequestCon);
+    //         listener.getFriendRequest();
+    //         friendRequestCon.setListener(this.listener);
+
+    //         Stage stage = MainLauncher.getPrimaryStage();
+    //         Scene scene = new Scene(window);
+    //         stage.setScene(scene);
+
+    //         // Set stage size to match scene size
+    //         stage.setWidth(window.getPrefWidth());
+    //         stage.setHeight(window.getPrefHeight());
+    //         stage.sizeToScene();
+    //         stage.centerOnScreen();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //         // Consider logging the error or showing an alert to the user
+    //     }
+    // }
 
     public void refreshHandler() throws IOException {
         this.listener.sendUpdateConversationRequest();

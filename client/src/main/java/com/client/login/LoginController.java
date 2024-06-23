@@ -207,8 +207,8 @@ public class LoginController implements Initializable {
                     System.exit(0);
                 });
                 stage.setScene(this.scene);
-                stage.setMinWidth(1024);
-                stage.setMinHeight(768);
+                // stage.setMinWidth(1024);
+                // stage.setMinHeight(768);
                 ResizeHelper.addResizeListener(stage);
                 stage.centerOnScreen();
 

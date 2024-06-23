@@ -37,25 +37,16 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AddFriendController implements Initializable {
+public class GroupInvitationController implements Initializable {
     @FXML private TextField nameTextField;
     @FXML private ListView requestListView;
     
     private static ChatController chatCon;
     private static Listener listener;
-    private static AddFriendController instance;
 
     private String currentTargetName;
 
     Logger logger = LoggerFactory.getLogger(FriendRequestController.class);
-
-    public AddFriendController() {
-        instance = this;
-    }
-
-    public static AddFriendController getInstance() {
-        return instance;
-    }
 
     public void setListener(Listener listener) {
         this.listener = listener;
@@ -64,46 +55,20 @@ public class AddFriendController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize any required data or components here
-        // Add to track userListView
-        requestListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
-            @Override
-            public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
-                if (newRequest != null) {
-                    currentTargetName = newRequest.getConversationName();
-                    logger.info("ListView selection changed to newValue = " + currentTargetName);
-                } else {
-                    currentTargetName = null;
-                    logger.info("ListView selection cleared.");
-                }           
-            }
-        });
     }
 
     public void setUserListView(ArrayList<Conversation> userConversationList) {
-        logger.info("setUserListView() method Enter");
-        
-        Platform.runLater(() -> {
-            try {
-                // Update user list view
-                ObservableList<Conversation> conversationList = FXCollections.observableList(userConversationList);
-                requestListView.setItems(conversationList);
-                requestListView.setCellFactory(new CellRenderer());
-            
-        } catch (Exception e) {
-                logger.error("Error updating user list", e);
-        }
-    });
-        logger.info("setConversationListView() method Exit");
+
     }
     
     /*
-    ** Confirm button handler -> add friend
+    ** Confirm button handler -> create group
     */
     public void confirmHandler() {
         try {
             String name = nameTextField.getText();
             if (name == null || name.isEmpty()) {
-                LoginController.showErrorDialog("Name cannot be empty");
+                LoginController.showErrorDialog("Group name cannot be empty");
                 return;
             }
 

@@ -328,7 +328,7 @@ public class Server {
                 }
 
                 // Insert new friend request
-                String insertMessageQuery = "INSERT INTO Message (context, sent_datetime, sender_id, conversation_id) VALUES (?, NOW(), ?, ?)";
+                String insertMessageQuery = "INSERT INTO Message (context, sender_id, conversation_id) VALUES (?, ?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertMessageQuery)) {
 
                     st.setString(1, inputMsg.getMsg());
@@ -582,7 +582,7 @@ public class Server {
                 }
 
                 // Insert new friend request
-                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id, create_datetime) VALUES (?, ?, NOW())";
+                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id) VALUES (?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
 
                     st.setInt(1, requestUserID);
@@ -708,7 +708,7 @@ public class Server {
                 int conversationID = createConversation(userList);           
 
                 // Make friendship
-                String insertFriendshipQuery = "INSERT INTO Friendship (user1_id, user2_id, create_datetime, conversation_id) VALUES (?, ?, NOW(), ?)";
+                String insertFriendshipQuery = "INSERT INTO Friendship (user1_id, user2_id, conversation_id) VALUES (?, ?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
                     st.setInt(1, Math.min(requestID, receiverID));
                     st.setInt(2, Math.max(requestID, receiverID));
@@ -791,9 +791,8 @@ public class Server {
                 logger.info("Successfully connected to the database!");
 
                 // Insert new conversation 
-                String insertConversationSQL = "INSERT INTO Conversation (is_group, create_datetime, group_member) VALUES (0, NOW(), ?)";
+                String insertConversationSQL = "INSERT INTO Conversation (is_group) VALUES (0)";
                 try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
-                    st.setInt(1, userList.size());
 
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
@@ -814,7 +813,7 @@ public class Server {
 
                 for (User user : userList) {
                     // Update chat member
-                    String insertChatMemberSQL = "INSERT INTO ChatMember (conversation_id, user_id, join_datetime) VALUES (?, ?, NOW())";
+                    String insertChatMemberSQL = "INSERT INTO ChatMember (conversation_id, user_id) VALUES (?, ?)";
                     try (PreparedStatement st = connection.prepareStatement(insertChatMemberSQL)) {
                         st.setInt(1, createConversationID);
                         st.setInt(2, user.getID());

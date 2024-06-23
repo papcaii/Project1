@@ -2,9 +2,9 @@ package com.client.chatwindow;
 
 import com.client.login.MainLauncher;
 import com.client.login.LoginController;
-
 import com.messages.User;
 import com.messages.Conversation;
+import com.client.util.ResizeHelper;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
