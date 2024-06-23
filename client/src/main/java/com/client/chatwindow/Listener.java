@@ -17,8 +17,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.messages.MessageType.CONNECTED;
-
 public class Listener implements Runnable {
 
     private static final String HASCONNECTED = "has connected";
@@ -182,6 +180,9 @@ public class Listener implements Runnable {
                             LoginController.getInstance().showInformationDialog(message.getMsg());
                             break;
 
+                        case S_SHOW_CONVERSATION_PROPERTY:
+                            chatCon.showConversationProperty(message);
+
                         // load message of a specific conversation
                         case S_SHOW_CONVERSATION_CHAT:
                         	logger.info("User" + this.username + "get context of conversation from server");
@@ -195,12 +196,21 @@ public class Listener implements Runnable {
         }
     }
 
-    public void getMessageFromConversation(int conversationID)  throws IOException {
-    	Message conversationNeeded = new Message();
-    	conversationNeeded.setName(this.username);
-    	conversationNeeded.setType(MessageType.C_SHOW_CONVERSATION_CHAT);
-    	conversationNeeded.setTargetConversationID(conversationID);
-        this.output.writeObject(conversationNeeded);
+    public void getConversationProperty(int conversationID) throws IOException {
+        Message message = new Message();
+        message.setName(this.username);
+        message.setType(MessageType.C_SHOW_CONVERSATION_PROPERTY);
+        message.setTargetConversationID(conversationID);
+        this.output.writeObject(message);
+        this.output.flush();
+    }
+
+    public void getMessageFromConversation(int conversationID) throws IOException {
+    	Message message = new Message();
+    	message.setName(this.username);
+    	message.setType(MessageType.C_SHOW_CONVERSATION_CHAT);
+    	message.setTargetConversationID(conversationID);
+        this.output.writeObject(message);
         this.output.flush();
     }
     

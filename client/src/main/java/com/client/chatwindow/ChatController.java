@@ -58,6 +58,7 @@ public class ChatController implements Initializable {
     @FXML private ListView chatPane;
     @FXML GridPane gridPane;
     @FXML ComboBox statusComboBox;
+    @FXML VBox propertyBox;
 
     private double xOffset;
     private double yOffset;
@@ -291,6 +292,25 @@ public class ChatController implements Initializable {
         Platform.exit();
         System.exit(0);
     }
+
+    public void showConversationProperty(Message msg) {
+        Image image = userImageView.getImage();
+        ImageView profileImage = new ImageView(image);
+        profileImage.setFitHeight(64);
+        profileImage.setFitWidth(64);
+
+        Platform.runLater(() -> {
+            Label conversationName = new Label(msg.getName());
+
+            propertyBox.getChildren().add(profileImage);
+            propertyBox.getChildren().add(conversationName);
+
+            // Center the children within the VBox
+            propertyBox.setAlignment(Pos.TOP_CENTER);
+            // Optionally, add spacing between the children
+            propertyBox.setSpacing(10);
+        });
+    }
     
     public void showContextOfConversation(Message msg) {
         Platform.runLater(() -> {
@@ -345,6 +365,7 @@ public class ChatController implements Initializable {
                     //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
                     try {
+                        getConversationProperty(currentTargetConversationID);
                         getMessageFromConversation(currentTargetConversationID);
                     } catch (IOException e) {
                         logger.error("Error getting message from conversation", e);
@@ -361,6 +382,10 @@ public class ChatController implements Initializable {
 
     public void updateStatus(Status status) throws IOException {
         this.listener.sendStatusUpdate(status);
+    }
+
+    public void getConversationProperty(int targetConversationID) throws IOException {
+        this.listener.getConversationProperty(targetConversationID);
     }
 
     public void getMessageFromConversation(int targetConversationID) throws IOException {
