@@ -475,7 +475,7 @@ public class Server {
                 String hashedPassword = BCrypt.hashpw(registerMessage.getPassword(), BCrypt.gensalt());
 
                 // Insert the new user if the username does not exist
-                String insertUserSQL = "INSERT INTO User (user_name, password, is_online, create_datetime) VALUES (?, ?, ?, NOW())";
+                String insertUserSQL = "INSERT INTO User (user_name, password, create_datetime) VALUES (?, ?, ?, NOW())";
                 try (PreparedStatement insertUserStmt = connection.prepareStatement(insertUserSQL, Statement.RETURN_GENERATED_KEYS)) {
                     insertUserStmt.setString(1, registerMessage.getName());
                     insertUserStmt.setString(2, hashedPassword);
@@ -583,7 +583,7 @@ public class Server {
                 }
 
                 // Insert new friend request
-                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id, create_dt) VALUES (?, ?, NOW())";
+                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id, create_datetime) VALUES (?, ?, NOW())";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
 
                     st.setInt(1, requestUserID);

@@ -74,9 +74,30 @@
                     </options>
                 </configuration>
             </plugin>
+
+            <!-- SonarQube plugin -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.6.0.1398</version>
+            </plugin>
             
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+                <sonar.login>sqa_a9c1c973a79774ee4ebba8dae0f78a869e18ca0c</sonar.login>
+            </properties>
+        </profile>
+    </profiles>
+
     <properties>
         <slf4jVersion>1.6.1</slf4jVersion>
     </properties>
