@@ -75,11 +75,7 @@
             </BorderPane>
          </children>
       </VBox>
-      <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="2">
-         <children>
-            <ListView fx:id="propertyView" prefHeight="701.0" prefWidth="202.0" />
-         </children>
-      </VBox>
+      <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="2" />
       <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="2">
          <children>
             <ScrollPane prefHeight="651.0" prefWidth="606.0">
