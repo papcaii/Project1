@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -58,7 +59,7 @@
             </Button>
             <ScrollPane prefHeight="618.0" prefWidth="216.0">
                <content>
-                  <ListView fx:id="conversationListView" prefHeight="660.0" prefWidth="201.0" />
+                  <ListView fx:id="conversationListView" prefHeight="660.0" prefWidth="199.0" />
                </content>
             </ScrollPane>
             <BorderPane prefHeight="51.0" prefWidth="216.0">
@@ -80,7 +81,7 @@
          <children>
             <ScrollPane prefHeight="651.0" prefWidth="606.0">
                <content>
-                  <ListView fx:id="chatPane" prefHeight="651.0" prefWidth="591.0" />
+                  <ListView fx:id="chatPane" prefHeight="693.0" prefWidth="590.0" />
                </content>
             </ScrollPane>
             <HBox prefHeight="46.0" prefWidth="606.0">
@@ -108,6 +109,9 @@
             </ImageView>
          </right>
       </BorderPane>
-      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+      <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="1">
+         <children>
+            <Separator prefHeight="71.0" prefWidth="1024.0" valignment="BOTTOM" />
+         </children></HBox>
    </children>
 </GridPane>
