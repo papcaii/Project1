@@ -53,11 +53,10 @@ public class ChatController implements Initializable {
 
     @FXML private TextArea messageBox;
     @FXML private Label usernameLabel;
-    @FXML private Label onlineCountLabel;
-    @FXML private ListView<Conversation> userListView;
+    @FXML private ListView<Conversation> conversationListView;
     @FXML private ImageView userImageView;
     @FXML private ListView chatPane;
-    @FXML BorderPane borderPane;
+    @FXML GridPane gridPane;
     @FXML ComboBox statusComboBox;
 
     private double xOffset;
@@ -93,7 +92,7 @@ public class ChatController implements Initializable {
         return this.currentTargetConversationID;
     }
 
-    public void sendButtonAction() throws IOException {
+    public void sendHandler() throws IOException {
         String msg = messageBox.getText();
         if (currentTargetConversationID == -1) {
             LoginController.showErrorDialog("You have not choosen any conversation");
@@ -124,6 +123,10 @@ public class ChatController implements Initializable {
             e.printStackTrace();
             // Consider logging the error or showing an alert to the user
         }
+    }
+
+    public void groupHandler() {
+
     }
 
     public void friendRequestHandler() {
@@ -235,11 +238,6 @@ public class ChatController implements Initializable {
             t.start();
         }
     }
-
-	// Change number of online user
-    public void setOnlineLabel(String usercount) {
-        Platform.runLater(() -> onlineCountLabel.setText(usercount));
-    }
     
     public void setConversationListView(Message msg) {
         logger.info("setConversationListView() method Enter");
@@ -250,8 +248,8 @@ public class ChatController implements Initializable {
             try {
                 // Update user list view
                 ObservableList<Conversation> conversationList = FXCollections.observableList(new ArrayList<>(conversationMap.values()));
-                userListView.setItems(conversationList);
-                userListView.setCellFactory(new CellRenderer());
+                conversationListView.setItems(conversationList);
+                conversationListView.setCellFactory(new CellRenderer());
             
         } catch (Exception e) {
                 logger.error("Error updating user list", e);
@@ -261,12 +259,12 @@ public class ChatController implements Initializable {
     }
 
 
-	// sendButtonAction
-    public void sendMethod(KeyEvent event) throws IOException {
-        if (event.getCode() == KeyCode.ENTER) {
-            sendButtonAction();
-        }
-    }
+	// // sendButtonAction
+    // public void sendMethod(KeyEvent event) throws IOException {
+    //     if (event.getCode() == KeyCode.ENTER) {
+    //         sendHandler();
+    //     }
+    // }
 
     @FXML
     public void closeApplication() {
@@ -290,27 +288,27 @@ public class ChatController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
     
         /* Drag and Drop */
-        borderPane.setOnMousePressed(event -> {
+        gridPane.setOnMousePressed(event -> {
             xOffset = MainLauncher.getPrimaryStage().getX() - event.getScreenX();
             yOffset = MainLauncher.getPrimaryStage().getY() - event.getScreenY();
-            borderPane.setCursor(Cursor.CLOSED_HAND);
+            gridPane.setCursor(Cursor.CLOSED_HAND);
         });
 
-        borderPane.setOnMouseDragged(event -> {
+        gridPane.setOnMouseDragged(event -> {
             MainLauncher.getPrimaryStage().setX(event.getScreenX() + xOffset);
             MainLauncher.getPrimaryStage().setY(event.getScreenY() + yOffset);
 
         });
 
-        borderPane.setOnMouseReleased(event -> {
-            borderPane.setCursor(Cursor.DEFAULT);
+        gridPane.setOnMouseReleased(event -> {
+            gridPane.setCursor(Cursor.DEFAULT);
         });
 
         /* Added to prevent the enter from adding a new line to inputMessageBox */
         messageBox.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
             if (ke.getCode().equals(KeyCode.ENTER)) {
                 try {
-                    sendButtonAction();
+                    sendHandler();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -318,8 +316,8 @@ public class ChatController implements Initializable {
             }
         });
         
-        // Add to track userListView
-        userListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
+        // Add to track conversationListView
+        conversationListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
             @Override
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {

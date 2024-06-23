@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21">
+<GridPane fx:id="gridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21" fx:controller="com.client.chatwindow.ChatController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="SOMETIMES" maxWidth="606.0" minWidth="10.0" prefWidth="596.0" />
@@ -45,7 +45,7 @@
             </ScrollPane>
             <BorderPane prefHeight="51.0" prefWidth="216.0">
                <right>
-                  <Label prefHeight="43.0" prefWidth="152.0" text="papcaii" BorderPane.alignment="CENTER" />
+                  <Label fx:id="usernameLabel" prefHeight="43.0" prefWidth="152.0" text="papcaii" BorderPane.alignment="CENTER" />
                </right>
                <center>
                   <ImageView fitHeight="46.0" fitWidth="55.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
@@ -71,7 +71,7 @@
             </ScrollPane>
             <HBox prefHeight="46.0" prefWidth="606.0">
                <children>
-                  <TextArea prefHeight="20.0" prefWidth="477.0" />
+                  <TextArea fx:id="messageBox" prefHeight="20.0" prefWidth="477.0" />
                   <Button fx:id="sendButton" mnemonicParsing="false" onAction="#sendHandler" prefHeight="60.0" prefWidth="136.0">
                      <graphic>
                         <ImageView fitHeight="36.0" fitWidth="49.0" pickOnBounds="true" preserveRatio="true">

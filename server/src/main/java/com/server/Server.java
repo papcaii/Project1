@@ -475,11 +475,10 @@ public class Server {
                 String hashedPassword = BCrypt.hashpw(registerMessage.getPassword(), BCrypt.gensalt());
 
                 // Insert the new user if the username does not exist
-                String insertUserSQL = "INSERT INTO User (user_name, password, create_datetime) VALUES (?, ?, ?, NOW())";
+                String insertUserSQL = "INSERT INTO User (user_name, password) VALUES (?, ?)";
                 try (PreparedStatement insertUserStmt = connection.prepareStatement(insertUserSQL, Statement.RETURN_GENERATED_KEYS)) {
                     insertUserStmt.setString(1, registerMessage.getName());
                     insertUserStmt.setString(2, hashedPassword);
-                    insertUserStmt.setBoolean(3, false);
 
                     int affectedRows = insertUserStmt.executeUpdate();
                     if (affectedRows > 0) {
