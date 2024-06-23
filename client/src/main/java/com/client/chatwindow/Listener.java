@@ -194,6 +194,14 @@ public class Listener implements Runnable {
                         	logger.info("User" + this.username + "get context of conversation from server");
                         	chatCon.showContextOfConversation(message);
                         	break;
+                        	
+                        // create new blank group
+                        case S_CREATE_GROUP:
+                        	break;
+                        	
+                        // add people to  group
+                        case S_ADD_PEOPLE_TO_GROUP:
+                        	break;
                     }
                 }
             }
@@ -240,6 +248,44 @@ public class Listener implements Runnable {
         this.output.flush();
     }
 
+    // send request to add people from group
+    public void sendGroupRequest(String userTarget,Conversation group) throws IOException {
+    	logger.info("Send request for "+userTarget+" to join group " + group.getConversationName());
+    	try {
+            Message validateMessage = new Message();
+            validateMessage.setName(userTarget);
+            validateMessage.setMsg(group.getConversationName());
+            validateMessage.setTargetConversationID(group.getConversationID());
+            validateMessage.setType(MessageType.C_SEND_GROUP_REQUEST);
+            this.output.writeObject(validateMessage);
+            this.output.flush();
+            logger.debug("Sent validation message: " + validateMessage);
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    // send create new group to server 
+    public void createGroup(String userName,String groupName) throws IOException{
+    	logger.info("Group with name "+groupName+" has been request from "+userName+" to created");
+    	try {
+            Message validateMessage = new Message();
+            validateMessage.setName(username);
+            validateMessage.setMsg(groupName);
+            validateMessage.setType(MessageType.C_CREATE_GROUP);
+            this.output.writeObject(validateMessage);
+            this.output.flush();
+            logger.debug("Sent validation message: " + validateMessage);
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        }
+    	
+    }
+    
     /* This method is used to validate a user (server will check pass from db) */
     public void login(String username, String password) throws IOException, ClassNotFoundException {
         logger.info("login() method enter");
@@ -261,7 +307,7 @@ public class Listener implements Runnable {
             throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
         }
     }
-
+    
     /* This method is used to validate a user registration(server will create new user in db) */
     public void register(String username, String password) throws IOException, ClassNotFoundException {
         logger.info("register() method enter");
