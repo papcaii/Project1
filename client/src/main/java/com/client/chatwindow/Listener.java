@@ -188,6 +188,22 @@ public class Listener implements Runnable {
                         	logger.info("User" + this.username + "get context of conversation from server");
                         	chatCon.showContextOfConversation(message);
                         	break;
+                        
+                        // load conversation group, the values store in userMap
+                        case S_UPDATE_CONVERSATION_GROUP:
+                        	break;
+                        	
+                        // create new blank group
+                        case S_CREATE_GROUP:
+                        	break;
+                        	
+                        // show all request from group 
+                        case S_GET_GROUP_REQUEST:
+                        	break;
+                        
+                        // add people to  group
+                        case S_ADD_PEOPLE_TO_GROUP:
+                        	break;
                     }
                 }
             }
@@ -230,6 +246,13 @@ public class Listener implements Runnable {
         this.output.writeObject(refreshMessage);
         this.output.flush();
     }
+    
+    public void sendUpdateConversationGroupRequest() throws IOException {
+        Message refreshMessage = new Message();
+        refreshMessage.setType(MessageType.C_UPDATE_CONVERSATION_GROUP);
+        this.output.writeObject(refreshMessage);
+        this.output.flush();
+    }
 
     /* This method is used for sending a normal Message
  * @param msg - The message which the user generates
@@ -243,6 +266,44 @@ public class Listener implements Runnable {
         this.output.flush();
     }
 
+    // send request to add people from group
+    public void sendGroupRequest(String userTarget,Conversation group) throws IOException {
+    	logger.info("Send request for "+userTarget+" to join group " + group.getConversationName());
+    	try {
+            Message validateMessage = new Message();
+            validateMessage.setName(userTarget);
+            validateMessage.setMsg(group.getConversationName());
+            validateMessage.setTargetConversationID(group.getConversationID());
+            validateMessage.setType(MessageType.C_SEND_GROUP_REQUEST);
+            this.output.writeObject(validateMessage);
+            this.output.flush();
+            logger.debug("Sent validation message: " + validateMessage);
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    // send create new group to server 
+    public void createGroup(String userName,String groupName) throws IOException{
+    	logger.info("Group with name "+groupName+" has been request from "+userName+" to created");
+    	try {
+            Message validateMessage = new Message();
+            validateMessage.setName(username);
+            validateMessage.setMsg(groupName);
+            validateMessage.setType(MessageType.C_CREATE_GROUP);
+            this.output.writeObject(validateMessage);
+            this.output.flush();
+            logger.debug("Sent validation message: " + validateMessage);
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        }
+    	
+    }
+    
     /* This method is used to validate a user (server will check pass from db) */
     public void login(String username, String password) throws IOException, ClassNotFoundException {
         logger.info("login() method enter");
@@ -264,7 +325,7 @@ public class Listener implements Runnable {
             throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
         }
     }
-
+    
     /* This method is used to validate a user registration(server will create new user in db) */
     public void register(String username, String password) throws IOException, ClassNotFoundException {
         logger.info("register() method enter");
@@ -328,6 +389,26 @@ public class Listener implements Runnable {
         this.output.flush();
     }
 
+    // get full group requests
+    public void getGroupRequest() throws IOException {
+        try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setType(MessageType.C_GET_GROUP_REQUEST);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+
+    }
+    
+    // get full friend request from another user  
     public void getFriendRequest() throws IOException {
         try {
             Message msg = new Message();
@@ -343,9 +424,48 @@ public class Listener implements Runnable {
             logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
             throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
         }
-
     }
 
+    // user out group
+    public void outGroup(String userName, Conversation group) throws IOException {
+    	try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setTargetConversationID(group.getConversationID());
+            msg.setMsg(group.getConversationName());
+            msg.setType(MessageType.C_REMOVE_FROM_GROUP);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+    
+    // user join group
+    public void joinToGroup(String userName, Conversation group) throws IOException {
+    	try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setTargetConversationID(group.getConversationID());
+            msg.setMsg(group.getConversationName());
+            msg.setType(MessageType.C_ADD_PEOPLE_TO_GROUP);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+    
     public void close() {
         try {
         if (this.input != null) {
