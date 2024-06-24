@@ -204,6 +204,14 @@ public class Server {
                             case C_GET_GROUP_REQUEST:
                             	getUserGroupRequest(inputmsg);
                             	break;
+                            
+                            case C_ADD_PEOPLE_TO_GROUP:
+                            	addUserToGroup(inputmsg);
+                            	break;
+                            
+                            case C_REMOVE_FROM_GROUP:
+                            	removeUserFromGroup(inputmsg);
+                            	break;
                         }
                     }
                 }
@@ -242,7 +250,7 @@ public class Server {
                     return false; 
                 }
                 // Check if there are request to targetUser invite group
-                String checkRequestQuery = "SELECT * FROM GroupRequest WHERE user_target_id=? AND user_request_id=? AND conversation_id=?";
+                String checkRequestQuery = "SELECT * FROM GroupRequest WHERE receiver_id=? AND sender_id=? AND conversation_id=?";
                 try (PreparedStatement st = connection.prepareStatement(checkRequestQuery)) {
                     st.setInt(1, userAdmin.getID());
                     st.setInt(2, userTarget.getID());
@@ -273,7 +281,7 @@ public class Server {
                 }
 
                 // Insert new join request
-                String insertFriendshipQuery = "INSERT INTO GroupRequest (user_request_id, user_target_id, conversation_id, create_dt) VALUES (?, ?, ?, NOW())";
+                String insertFriendshipQuery = "INSERT INTO GroupRequest (sender_id, receiver_id, conversation_id, create_dt) VALUES (?, ?, ?, NOW())";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
 
                     st.setInt(1, userAdmin.getID());
@@ -849,6 +857,104 @@ public class Server {
             }
         }
 
+        
+        private void removeUserFromGroup(Message message) throws IOException, InvalidUserException {
+            User user = names.get(message.getName());
+            int conversationId=message.getTargetConversationID();
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
+                    return ;
+                }
+
+                // Check if user already in group
+                String deleteUserQuery = "DELETE FROM ChatMember WHERE group_id=? AND receiver_id=?";
+                try (PreparedStatement stateDelete = connection.prepareStatement(deleteUserQuery)) {
+                    stateDelete.setInt(1, conversationId);
+                    stateDelete.setInt(2, user.getID());
+
+                    int affectedRows = stateDelete.executeUpdate();
+                    if (affectedRows > 0) {
+                        // logger.info("");
+                    } else {
+                        logger.error("Cant delete user or not exist");
+                        return ;
+                    }
+                }
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            } 
+        }
+        
+        // 
+        private boolean addUserToGroup(Message message) throws InvalidUserException {
+            User user = names.get(message.getName());
+            int conversationId=message.getTargetConversationID();
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
+                    return false;
+                }
+
+                // Check if user already in group
+                String checkFriendshipQuery = "SELECT * FROM ChatMember WHERE conversation_id=? AND user_id=?";
+                try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
+                    st.setInt(1, conversationId);
+                    st.setInt(2, user.getID());
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            // Already in group
+                            logger.info("Already in group");
+                            sendErrorToUser(this.output, "You has been in this group");
+                            return false;
+                        }
+                    }
+                }
+
+                // Delete group request
+                String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE group_id=? AND receiver_id=?";
+                try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
+                    st.setInt(1, message.getTargetConversationID());
+                    st.setInt(2, user.getID());
+
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        // logger.info("");
+                    } else {
+                        logger.error("Cant delete group request or not exist");
+                        return false;
+                    }
+                }           
+
+                // Make friendship
+                String insertFriendshipQuery = "INSERT INTO ChatMember (conversation_id, user_id) VALUES (?, ?)";
+                try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
+                    st.setInt(1, message.getTargetConversationID());
+                    st.setInt(2, user.getID());
+
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        logger.info("You has been join group " + message.getMsg());
+                        sendNotificationToUser(this.output, "You has been join group " + message.getMsg());
+                        return true;
+                    } else {
+                        logger.error("Failed to join grop {}", message.getMsg());
+                        return false;
+                    }
+                }
+
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                return false;
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+                return false;
+            }
+        }
+        
         private boolean createFriendship(Message message) throws InvalidUserException {
             User requestUser = names.get(message.getName());
             int requestID = requestUser.getID();

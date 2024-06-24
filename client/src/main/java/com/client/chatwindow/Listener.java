@@ -421,9 +421,48 @@ public class Listener implements Runnable {
             logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
             throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
         }
-
     }
 
+    // user out group
+    public void outGroup(String userName, Conversation group) throws IOException {
+    	try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setTargetConversationID(group.getConversationID());
+            msg.setMsg(group.getConversationName());
+            msg.setType(MessageType.C_REMOVE_FROM_GROUP);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+    
+    // user join group
+    public void joinToGroup(String userName, Conversation group) throws IOException {
+    	try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setTargetConversationID(group.getConversationID());
+            msg.setMsg(group.getConversationName());
+            msg.setType(MessageType.C_ADD_PEOPLE_TO_GROUP);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+    }
+    
     public void close() {
         try {
         if (this.input != null) {
