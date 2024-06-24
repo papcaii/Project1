@@ -53,12 +53,12 @@ public class ChatController implements Initializable {
 
     @FXML private TextArea messageBox;
     @FXML private Label usernameLabel;
-    @FXML private Label onlineCountLabel;
-    @FXML private ListView<Conversation> userListView;
+    @FXML private ListView<Conversation> conversationListView;
     @FXML private ImageView userImageView;
     @FXML private ListView chatPane;
-    @FXML BorderPane borderPane;
+    @FXML GridPane gridPane;
     @FXML ComboBox statusComboBox;
+    @FXML VBox propertyBox;
 
     private double xOffset;
     private double yOffset;
@@ -69,7 +69,7 @@ public class ChatController implements Initializable {
 
     private ChatController instance;
     private AddFriendController addFriendCon;
-    private FriendRequestController friendRequestCon;
+    private GroupInvitationController groupInvitationCon;
     
     Logger logger = LoggerFactory.getLogger(ChatController.class);
 
@@ -93,7 +93,7 @@ public class ChatController implements Initializable {
         return this.currentTargetConversationID;
     }
 
-    public void sendButtonAction() throws IOException {
+    public void sendHandler() throws IOException {
         String msg = messageBox.getText();
         if (currentTargetConversationID == -1) {
             LoginController.showErrorDialog("You have not choosen any conversation");
@@ -107,48 +107,72 @@ public class ChatController implements Initializable {
 
     public void addFriendHandler() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/AddFriendView.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/NewAddFriendView.fxml"));
             BorderPane window = fxmlLoader.load();
             addFriendCon = fxmlLoader.getController();
             addFriendCon.setListener(this.listener);
-
-            Stage stage = MainLauncher.getPrimaryStage();
-            Scene scene = new Scene(window);
-            stage.setScene(scene);
-
-            // Set stage size to match scene size
-            stage.setWidth(window.getPrefWidth());
-            stage.setHeight(window.getPrefHeight());
-            stage.centerOnScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Consider logging the error or showing an alert to the user
-        }
-    }
-
-    public void friendRequestHandler() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/FriendRequestView.fxml"));
-            BorderPane window = fxmlLoader.load();
-            friendRequestCon = fxmlLoader.getController();
-            listener.setFriendRequestController(friendRequestCon);
+            listener.setAddFriendController(addFriendCon);
             listener.getFriendRequest();
-            friendRequestCon.setListener(this.listener);
+            logger.info("set listener to add friend controller");
 
-            Stage stage = MainLauncher.getPrimaryStage();
+            Stage stage = (Stage) messageBox.getScene().getWindow();
             Scene scene = new Scene(window);
             stage.setScene(scene);
 
             // Set stage size to match scene size
             stage.setWidth(window.getPrefWidth());
             stage.setHeight(window.getPrefHeight());
-            stage.sizeToScene();
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
             // Consider logging the error or showing an alert to the user
         }
     }
+
+    public void groupHandler() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupView.fxml"));
+            BorderPane window = fxmlLoader.load();
+            groupInvitationCon = fxmlLoader.getController();
+            groupInvitationCon.setListener(this.listener);
+
+            Stage stage = (Stage) messageBox.getScene().getWindow();
+            Scene scene = new Scene(window);
+            stage.setScene(scene);
+
+            // Set stage size to match scene size
+            stage.setWidth(window.getPrefWidth());
+            stage.setHeight(window.getPrefHeight());
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Consider logging the error or showing an alert to the user
+        }
+    }
+
+    // public void friendRequestHandler() {
+    //     try {
+    //         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/FriendRequestView.fxml"));
+    //         BorderPane window = fxmlLoader.load();
+    //         friendRequestCon = fxmlLoader.getController();
+    //         listener.setFriendRequestController(friendRequestCon);
+    //         listener.getFriendRequest();
+    //         friendRequestCon.setListener(this.listener);
+
+    //         Stage stage = MainLauncher.getPrimaryStage();
+    //         Scene scene = new Scene(window);
+    //         stage.setScene(scene);
+
+    //         // Set stage size to match scene size
+    //         stage.setWidth(window.getPrefWidth());
+    //         stage.setHeight(window.getPrefHeight());
+    //         stage.sizeToScene();
+    //         stage.centerOnScreen();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //         // Consider logging the error or showing an alert to the user
+    //     }
+    // }
 
     public void refreshHandler() throws IOException {
         this.listener.sendUpdateConversationRequest();
@@ -235,11 +259,6 @@ public class ChatController implements Initializable {
             t.start();
         }
     }
-
-	// Change number of online user
-    public void setOnlineLabel(String usercount) {
-        Platform.runLater(() -> onlineCountLabel.setText(usercount));
-    }
     
     public void setConversationListView(Message msg) {
         logger.info("setConversationListView() method Enter");
@@ -250,8 +269,8 @@ public class ChatController implements Initializable {
             try {
                 // Update user list view
                 ObservableList<Conversation> conversationList = FXCollections.observableList(new ArrayList<>(conversationMap.values()));
-                userListView.setItems(conversationList);
-                userListView.setCellFactory(new CellRenderer());
+                conversationListView.setItems(conversationList);
+                conversationListView.setCellFactory(new CellRenderer());
             
         } catch (Exception e) {
                 logger.error("Error updating user list", e);
@@ -261,17 +280,36 @@ public class ChatController implements Initializable {
     }
 
 
-	// sendButtonAction
-    public void sendMethod(KeyEvent event) throws IOException {
-        if (event.getCode() == KeyCode.ENTER) {
-            sendButtonAction();
-        }
-    }
+	// // sendButtonAction
+    // public void sendMethod(KeyEvent event) throws IOException {
+    //     if (event.getCode() == KeyCode.ENTER) {
+    //         sendHandler();
+    //     }
+    // }
 
     @FXML
     public void closeApplication() {
         Platform.exit();
         System.exit(0);
+    }
+
+    public void showConversationProperty(Message msg) {
+        Image image = userImageView.getImage();
+        ImageView profileImage = new ImageView(image);
+        profileImage.setFitHeight(64);
+        profileImage.setFitWidth(64);
+
+        Platform.runLater(() -> {
+            Label conversationName = new Label(msg.getName());
+
+            propertyBox.getChildren().add(profileImage);
+            propertyBox.getChildren().add(conversationName);
+
+            // Center the children within the VBox
+            propertyBox.setAlignment(Pos.TOP_CENTER);
+            // Optionally, add spacing between the children
+            propertyBox.setSpacing(10);
+        });
     }
     
     public void showContextOfConversation(Message msg) {
@@ -290,27 +328,27 @@ public class ChatController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
     
         /* Drag and Drop */
-        borderPane.setOnMousePressed(event -> {
+        gridPane.setOnMousePressed(event -> {
             xOffset = MainLauncher.getPrimaryStage().getX() - event.getScreenX();
             yOffset = MainLauncher.getPrimaryStage().getY() - event.getScreenY();
-            borderPane.setCursor(Cursor.CLOSED_HAND);
+            gridPane.setCursor(Cursor.CLOSED_HAND);
         });
 
-        borderPane.setOnMouseDragged(event -> {
+        gridPane.setOnMouseDragged(event -> {
             MainLauncher.getPrimaryStage().setX(event.getScreenX() + xOffset);
             MainLauncher.getPrimaryStage().setY(event.getScreenY() + yOffset);
 
         });
 
-        borderPane.setOnMouseReleased(event -> {
-            borderPane.setCursor(Cursor.DEFAULT);
+        gridPane.setOnMouseReleased(event -> {
+            gridPane.setCursor(Cursor.DEFAULT);
         });
 
         /* Added to prevent the enter from adding a new line to inputMessageBox */
         messageBox.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
             if (ke.getCode().equals(KeyCode.ENTER)) {
                 try {
-                    sendButtonAction();
+                    sendHandler();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -318,8 +356,8 @@ public class ChatController implements Initializable {
             }
         });
         
-        // Add to track userListView
-        userListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
+        // Add to track conversationListView
+        conversationListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
             @Override
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {
@@ -327,6 +365,7 @@ public class ChatController implements Initializable {
                     //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
                     try {
+                        getConversationProperty(currentTargetConversationID);
                         getMessageFromConversation(currentTargetConversationID);
                     } catch (IOException e) {
                         logger.error("Error getting message from conversation", e);
@@ -343,6 +382,10 @@ public class ChatController implements Initializable {
 
     public void updateStatus(Status status) throws IOException {
         this.listener.sendStatusUpdate(status);
+    }
+
+    public void getConversationProperty(int targetConversationID) throws IOException {
+        this.listener.getConversationProperty(targetConversationID);
     }
 
     public void getMessageFromConversation(int targetConversationID) throws IOException {

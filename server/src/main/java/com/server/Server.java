@@ -142,9 +142,6 @@ public class Server {
                     if (inputmsg != null) {
                         logger.info(inputmsg.getType() + " - " + inputmsg.getName() + ": " + inputmsg.getMsg());
                         switch (inputmsg.getType()) {
-                            case USER_MESSAGE:
-                                sendMessageToTarget(this.output, inputmsg);
-                                break;
                             case C_LOGIN:
                                 if (validateClient(inputmsg)) {
                                     this.name = inputmsg.getName();
@@ -170,6 +167,10 @@ public class Server {
 
                             case C_CONVERSATION_CHAT:
                                 sendMessageToConversation(inputmsg);
+                                break;
+
+                            case C_SHOW_CONVERSATION_PROPERTY:
+                                getConversationProperty(inputmsg);
                                 break;
 
                             case C_SHOW_CONVERSATION_CHAT:
@@ -252,7 +253,72 @@ public class Server {
             }
 
         }
-        
+
+        // when client choose conversation, its property will be loaded
+        private void getConversationProperty(Message inputMsg) throws SQLException, IOException {
+            int conID=inputMsg.getTargetConversationID();
+            // logger.debug("User with name "+inputMsg.getName() + " change to conversation with ID = {}" + conID);
+            ArrayList<Message> context = new ArrayList<Message>();
+            try (Connection connection = DatabaseManager.getConnection()) {
+                logger.info("getConnection() exit");
+                if (connection != null) {
+                    logger.info("Successfully connected to the database!");
+                } else {
+                    logger.info("Cannot connect to database!");
+                    return ;
+                }
+
+                try (PreparedStatement st = connection.prepareStatement(
+                        "SELECT * FROM Conversation WHERE conversation_id=?")) {
+                    st.setInt(1, conID);
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            // check if this conversation is a group
+                            if (rs.getInt("is_group") == 0) {
+                                // It's not a group, so get the friendship details
+                                try (PreparedStatement st2 = connection.prepareStatement(
+                                        "SELECT user1_id, user2_id FROM Friendship WHERE conversation_id = ?")) {
+                                    st2.setInt(1, conID);
+                                    try (ResultSet rs2 = st2.executeQuery()) {
+                                        if (rs2.next()) {
+                                            Message msg = new Message();
+                                            msg.setType(MessageType.S_SHOW_CONVERSATION_PROPERTY);
+
+                                            // Find the IDs of the two users in the conversation
+                                            int user1ID = rs2.getInt("user1_id");
+                                            int user2ID = rs2.getInt("user2_id");
+
+                                            // Determine the friend (the user that is not the current user)
+                                            int friendID;
+                                            if (user1ID == names.get(this.name).getID()) {
+                                                friendID = user2ID;
+                                            } else {
+                                                friendID = user1ID;
+                                            }
+
+                                            // Set the friend's name in the message
+                                            msg.setName(userMap.get(friendID).getName());
+
+                                            // Send the message to the target
+                                            sendMessageToTarget(this.output, msg);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return ;
+                }
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+            } finally {
+                //logger.info("send response to client");
+            }
+        }
+
         // when client request to load message of conversation
         private void getContextConversation(Message inputMsg) throws SQLException, IOException {
         	int conID=inputMsg.getTargetConversationID();
@@ -328,7 +394,7 @@ public class Server {
                 }
 
                 // Insert new friend request
-                String insertMessageQuery = "INSERT INTO Message (context, sent_datetime, sender_id, conversation_id) VALUES (?, NOW(), ?, ?)";
+                String insertMessageQuery = "INSERT INTO Message (context, sender_id, conversation_id) VALUES (?, ?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertMessageQuery)) {
 
                     st.setString(1, inputMsg.getMsg());
@@ -475,11 +541,10 @@ public class Server {
                 String hashedPassword = BCrypt.hashpw(registerMessage.getPassword(), BCrypt.gensalt());
 
                 // Insert the new user if the username does not exist
-                String insertUserSQL = "INSERT INTO User (user_name, password, create_datetime) VALUES (?, ?, ?, NOW())";
+                String insertUserSQL = "INSERT INTO User (user_name, password) VALUES (?, ?)";
                 try (PreparedStatement insertUserStmt = connection.prepareStatement(insertUserSQL, Statement.RETURN_GENERATED_KEYS)) {
                     insertUserStmt.setString(1, registerMessage.getName());
                     insertUserStmt.setString(2, hashedPassword);
-                    insertUserStmt.setBoolean(3, false);
 
                     int affectedRows = insertUserStmt.executeUpdate();
                     if (affectedRows > 0) {
@@ -583,7 +648,7 @@ public class Server {
                 }
 
                 // Insert new friend request
-                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id, create_datetime) VALUES (?, ?, NOW())";
+                String insertFriendshipQuery = "INSERT INTO FriendRequest (sender_id, receiver_id) VALUES (?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
 
                     st.setInt(1, requestUserID);
@@ -621,11 +686,7 @@ public class Server {
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
                     logger.error("Cannot connect to database!");
-                    Message msg = new Message();
-                    msg.setType(MessageType.ERROR);
-                    msg.setMsg("Cannot connect to database!");
-                    sendMessageToTarget(output, msg);
-                    return;
+                    sendErrorToUser(this.output, "Cannot connect to database");
                 }
 
                 // Get user list and store in a map
@@ -709,7 +770,7 @@ public class Server {
                 int conversationID = createConversation(userList);           
 
                 // Make friendship
-                String insertFriendshipQuery = "INSERT INTO Friendship (user1_id, user2_id, create_datetime, conversation_id) VALUES (?, ?, NOW(), ?)";
+                String insertFriendshipQuery = "INSERT INTO Friendship (user1_id, user2_id, conversation_id) VALUES (?, ?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
                     st.setInt(1, Math.min(requestID, receiverID));
                     st.setInt(2, Math.max(requestID, receiverID));
@@ -792,9 +853,8 @@ public class Server {
                 logger.info("Successfully connected to the database!");
 
                 // Insert new conversation 
-                String insertConversationSQL = "INSERT INTO Conversation (is_group, create_datetime, group_member) VALUES (0, NOW(), ?)";
+                String insertConversationSQL = "INSERT INTO Conversation (is_group) VALUES (0)";
                 try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
-                    st.setInt(1, userList.size());
 
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
@@ -815,7 +875,7 @@ public class Server {
 
                 for (User user : userList) {
                     // Update chat member
-                    String insertChatMemberSQL = "INSERT INTO ChatMember (conversation_id, user_id, join_datetime) VALUES (?, ?, NOW())";
+                    String insertChatMemberSQL = "INSERT INTO ChatMember (conversation_id, user_id) VALUES (?, ?)";
                     try (PreparedStatement st = connection.prepareStatement(insertChatMemberSQL)) {
                         st.setInt(1, createConversationID);
                         st.setInt(2, user.getID());
@@ -902,18 +962,18 @@ public class Server {
             }
         }
 
-        // when an user logout
-        private Message removeFromList() throws IOException {
-            logger.debug("removeFromList() method Enter");
-            Message msg = new Message();
-            msg.setMsg("has left the chat.");
-            msg.setType(MessageType.DISCONNECTED);
-            msg.setName("SERVER");
-            msg.setUserlist(users);
-            sendMessageToAll(msg);
-            logger.debug("removeFromList() method Exit");
-            return msg;
-        }
+        // // when an user logout
+        // private Message removeFromList() throws IOException {
+        //     logger.debug("removeFromList() method Enter");
+        //     Message msg = new Message();
+        //     msg.setMsg("has left the chat.");
+        //     msg.setType(MessageType.DISCONNECTED);
+        //     msg.setName("SERVER");
+        //     msg.setUserlist(users);
+        //     sendMessageToAll(msg);
+        //     logger.debug("removeFromList() method Exit");
+        //     return msg;
+        // }
 
         private synchronized void closeConnections() {
             updateClientStatus(this.user.getID(), Status.OFFLINE);
