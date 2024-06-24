@@ -1,43 +1,68 @@
 CREATE TABLE IF NOT EXISTS User (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
     user_name VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    is_online BOOLEAN NOT NULL DEFAULT FALSE,
-    create_datetime DATETIME NOT NULL
+    create_datetime DATETIME NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS Conversation (
-    conversation_id INT AUTO_INCREMENT PRIMARY KEY,
-    is_group BOOLEAN NOT NULL DEFAULT FALSE,
-    group_name VARCHAR(255),
-    create_datetime DATETIME NOT NULL,
-    group_member INT
+    conversation_id INT PRIMARY KEY AUTO_INCREMENT,
+    is_group BOOLEAN NOT NULL,
+    create_datetime DATETIME NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS Message (
-    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    message_id INT PRIMARY KEY AUTO_INCREMENT,
     context VARCHAR(255) NOT NULL,
-    sent_datetime DATETIME NOT NULL,
+    sent_datetime DATETIME NOT NULL DEFAULT NOW(),
     sender_id INT,
     conversation_id INT,
-    FOREIGN KEY (sender_id) REFERENCES User(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS ChatMember (
-    conversation_id INT,
-    user_id INT,
-    join_datetime DATETIME NOT NULL,
-    PRIMARY KEY (conversation_id, user_id),
-    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES User(user_id) ON DELETE CASCADE
+    FOREIGN KEY (sender_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Friendship (
     user1_id INT,
     user2_id INT,
-    create_datetime DATETIME NOT NULL,
+    create_datetime DATETIME NOT NULL DEFAULT NOW(),
+    conversation_id INT,
     PRIMARY KEY (user1_id, user2_id),
-    FOREIGN KEY (user1_id) REFERENCES User(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (user2_id) REFERENCES User(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user1_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user2_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS GroupChat (
+    group_id INT PRIMARY KEY AUTO_INCREMENT,
+    conversation_id INT,
+    group_admin INT,
+    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (group_admin) REFERENCES User(user_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ChatMember (
+    conversation_id INT,
+    user_id INT,
+    join_datetime DATETIME NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (conversation_id, user_id),
+    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS GroupRequest (
+    sender_id INT,
+    group_id INT,
+    sent_datetime DATETIME NOT NULL DEFAULT NOW(),
+    receiver_id INT,
+    FOREIGN KEY (sender_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES GroupChat(group_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS FriendRequest (
+    sender_id INT,
+    receiver_id INT,
+    create_datetime DATETIME NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (sender_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );

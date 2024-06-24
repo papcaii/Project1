@@ -187,7 +187,7 @@ public class LoginController implements Initializable {
     public synchronized void showChatScene() {
         Platform.runLater(() -> {
             try {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/ChatView.fxml"));
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/NewChatView.fxml"));
                 Parent window = fxmlLoader.load();
                 this.scene = new Scene(window);
                 chatCon = fxmlLoader.<ChatController>getController();
@@ -199,16 +199,16 @@ public class LoginController implements Initializable {
     
                 Stage stage = (Stage) hostnameTextfield.getScene().getWindow();
                 stage.setResizable(true);
-                stage.setWidth(1040);
-                stage.setHeight(620);
+                stage.setWidth(1024);
+                stage.setHeight(768);
     
                 stage.setOnCloseRequest((WindowEvent e) -> {
                     Platform.exit();
                     System.exit(0);
                 });
                 stage.setScene(this.scene);
-                stage.setMinWidth(800);
-                stage.setMinHeight(300);
+                // stage.setMinWidth(1024);
+                // stage.setMinHeight(768);
                 ResizeHelper.addResizeListener(stage);
                 stage.centerOnScreen();
 
