@@ -194,11 +194,19 @@ public class Listener implements Runnable {
                         	logger.info("User" + this.username + "get context of conversation from server");
                         	chatCon.showContextOfConversation(message);
                         	break;
+                        
+                        // load conversation group, the values store in userMap
+                        case S_UPDATE_CONVERSATION_GROUP:
+                        	break;
                         	
                         // create new blank group
                         case S_CREATE_GROUP:
                         	break;
                         	
+                        // show all request from group 
+                        case S_GET_GROUP_REQUEST:
+                        	break;
+                        
                         // add people to  group
                         case S_ADD_PEOPLE_TO_GROUP:
                         	break;
@@ -232,6 +240,13 @@ public class Listener implements Runnable {
     public void sendUpdateConversationRequest() throws IOException {
         Message refreshMessage = new Message();
         refreshMessage.setType(MessageType.C_UPDATE_CONVERSATION);
+        this.output.writeObject(refreshMessage);
+        this.output.flush();
+    }
+    
+    public void sendUpdateConversationGroupRequest() throws IOException {
+        Message refreshMessage = new Message();
+        refreshMessage.setType(MessageType.C_UPDATE_CONVERSATION_GROUP);
         this.output.writeObject(refreshMessage);
         this.output.flush();
     }
@@ -371,6 +386,26 @@ public class Listener implements Runnable {
         this.output.flush();
     }
 
+    // get full group requests
+    public void getGroupRequest() throws IOException {
+        try {
+            Message msg = new Message();
+            msg.setName(username);
+            msg.setType(MessageType.C_GET_GROUP_REQUEST);
+            this.output.writeObject(msg);
+            this.output.flush();
+            
+        } catch (IOException e) {
+            logger.error("Exception in connect method: " + e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected exception in connect method: " + e.getMessage(), e);
+            throw new RuntimeException(e); // Wrap unexpected exceptions in RuntimeException
+        }
+
+    }
+    
+    // get full friend request from another user  
     public void getFriendRequest() throws IOException {
         try {
             Message msg = new Message();

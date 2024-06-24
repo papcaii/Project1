@@ -196,6 +196,14 @@ public class Server {
                             case C_SEND_GROUP_REQUEST:
                             	sendRequestToAddGroup(inputmsg);
                             	break;
+                            
+                            case C_UPDATE_CONVERSATION_GROUP:
+                            	getUserConversationGroup(this.user.getID());
+                            	break;
+                            	
+                            case C_GET_GROUP_REQUEST:
+                            	getUserGroupRequest(inputmsg);
+                            	break;
                         }
                     }
                 }
@@ -741,6 +749,56 @@ public class Server {
             }
         }
 
+        private void getUserGroupRequest(Message inputMsg) throws IOException{
+            String userName = inputMsg.getName();
+            int userID = names.get(userName).getID();
+            int groupID;
+
+            HashMap<Integer, Conversation> requestMap = new HashMap<Integer, Conversation>(); 
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
+                    Message msg = new Message();
+                    msg.setType(MessageType.ERROR);
+                    msg.setMsg("Cannot connect to database!");
+                    sendMessageToTarget(output, msg);
+                    return;
+                }
+
+                // Get user list and store in a map
+                String query = "SELECT conversation_id, GroupChat.group_name FROM GroupRequest "
+                		+ "JOIN GroupChat ON GroupChat.conversation_id=GroupRequest.conversation_id"
+                		+ "WHERE user_target_id=?";
+                try (PreparedStatement st = connection.prepareStatement(query)) {
+                    st.setInt(1, userID);
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                            // Retrieve user information from the ResultSet
+                            groupID = rs.getInt("conversation_id");
+
+                            Conversation request = new Conversation();
+                            request.setConversationID(rs.getInt("conversation_id"));
+                            request.setConversationName(rs.getString("group_name"));
+
+                            // Store the user object in the HashMap with username as the key
+                            requestMap.put(groupID, request);
+                            logger.debug("Sender with ID {} added", groupID);
+                        }
+                    }
+                }
+
+                Message msg = new Message();
+                msg.setType(MessageType.S_GET_GROUP_REQUEST);
+                msg.setConversationMap(requestMap);
+                sendMessageToTarget(output, msg);
+
+            } catch (SQLException e) {
+                logger.error("SQL Exception: " + e.getMessage(), e);
+                return;
+            }
+        }
+        
         private void getUserFriendRequest(Message inputMsg) throws IOException{
             String userName = inputMsg.getName();
             int userID = names.get(userName).getID();
@@ -969,6 +1027,52 @@ public class Server {
             return createConversationID;
         }
 
+        //Return the list of group of user
+        private synchronized void getUserConversationGroup(int userID) throws IOException {            
+            try (Connection connection = DatabaseManager.getConnection()) {
+                HashMap<Integer, Conversation> userConversationGroupMap = new HashMap<>();
+
+                if (connection == null) {
+                    logger.info("Cannot connect to database!");
+                    return;
+                }
+                logger.info("Successfully connected to the database!");
+
+                // find group conversation
+                String insertConversationSQL = "SELECT conversation_id, GroupChat.group_name, GroupChat.group_admin FROM Conversation "
+                		+ "JOIN ChatMember ON ChatMember.conversation_id=Conversation.conversation_id"
+                		+ "JOIN GroupChat ON GroupChat.conversation_id=ChatMember.conversation_id"
+                		+ "WHERE ChatMember.user_id=? and Conversation.is_group=1";
+                try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    st.setInt(1, userID);
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+
+                            Conversation conversation = new Conversation();
+                            conversation.setGroup(true);
+                            conversation.setConversationID(rs.getInt("conversation_id"));
+                            conversation.setConversationName(rs.getString("group_name"));
+                            conversation.setGroupMaster(userMap.get(rs.getInt("group_admin")));
+
+                            logger.info("Loaded a group conversation with id " + rs.getInt("conversation_id"));
+                            userConversationGroupMap.put(rs.getInt("conversation_id"), conversation);
+                        }
+                    }
+                }
+
+                // Send group conversation map to user
+                Message msg = new Message();
+                msg.setType(MessageType.S_UPDATE_CONVERSATION_GROUP);
+                msg.setConversationMap(userConversationGroupMap);
+                logger.info("Size of conversation map: " + userConversationGroupMap.size());
+                sendMessageToTarget(this.output, msg);
+
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+            }
+        }
+        
         
         //Return the list of conversation view of client 
         private synchronized void getUserConversation(int userID) throws IOException {            
