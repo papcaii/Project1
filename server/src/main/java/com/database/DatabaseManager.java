@@ -8,8 +8,8 @@ import com.server.Server;
 
 public class DatabaseManager {
    private static final String DATABASE_URL = "jdbc:mysql://0.0.0.0:3307/chat-app";
-   private static final String DATABASE_USER_NAME = "demo_java";
-   private static final String DATABASE_PASSWORD = "1234";
+   private static final String DATABASE_USER_NAME = "papcaii";
+   private static final String DATABASE_PASSWORD = "123456";
 
    public static Connection getConnection() {
       try {

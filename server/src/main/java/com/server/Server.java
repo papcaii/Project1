@@ -832,10 +832,7 @@ public class Server {
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
                     logger.error("Cannot connect to database!");
-                    Message msg = new Message();
-                    msg.setType(MessageType.ERROR);
-                    msg.setMsg("Cannot connect to database!");
-                    sendMessageToTarget(output, msg);
+                    sendErrorToUser(this.output, "Cannot connect to database!");
                     return;
                 }
 

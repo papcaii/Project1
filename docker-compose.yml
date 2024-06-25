@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   mysql_db_container:
     image: mysql:latest
@@ -7,7 +6,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: "mysql"
+      MYSQL_DATABASE: "chat-app"
       MYSQL_USER: "papcaii"
       MYSQL_PASSWORD: "123456"
     ports:
