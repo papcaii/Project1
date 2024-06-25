@@ -150,32 +150,42 @@ public class ChatController implements Initializable {
         }
     }
 
-    // public void friendRequestHandler() {
-    //     try {
-    //         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/FriendRequestView.fxml"));
-    //         BorderPane window = fxmlLoader.load();
-    //         friendRequestCon = fxmlLoader.getController();
-    //         listener.setFriendRequestController(friendRequestCon);
-    //         listener.getFriendRequest();
-    //         friendRequestCon.setListener(this.listener);
+    public void addGroupMemberHandler() {
 
-    //         Stage stage = MainLauncher.getPrimaryStage();
-    //         Scene scene = new Scene(window);
-    //         stage.setScene(scene);
+    }
 
-    //         // Set stage size to match scene size
-    //         stage.setWidth(window.getPrefWidth());
-    //         stage.setHeight(window.getPrefHeight());
-    //         stage.sizeToScene();
-    //         stage.centerOnScreen();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         // Consider logging the error or showing an alert to the user
-    //     }
-    // }
+    public void outGroupHandler() {
+
+        // Prompt user for confirmation
+        if (!LoginController.showConfirmationDialog("Do you want to exit this group ?")) {
+            return;
+        }
+
+        try {
+            if (currentTargetConversationID == -1) {
+                LoginController.showErrorDialog("You are not choosing any conversation");
+                return;
+            }
+            this.listener.outGroup(currentTargetConversationID);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Consider logging the error or showing an alert to the user
+        }
+    }
 
     public void refreshHandler() throws IOException {
-        this.listener.sendUpdateConversationRequest();
+        currentTargetConversationID = -1;
+        Platform.runLater(() -> {
+            try {
+                conversationListView.getItems().clear();
+                chatPane.getItems().clear();
+                propertyBox.getChildren().clear();
+                this.listener.sendUpdateConversationRequest();
+
+            } catch (Exception e) {
+                logger.error("Error updating user list", e);
+            }
+        });
     }
 
     // When a new message add to chat
@@ -294,6 +304,8 @@ public class ChatController implements Initializable {
     }
 
     public void showConversationProperty(Message msg) {
+        logger.info("showConversationProperty() method enter");
+
         Image image = userImageView.getImage();
         ImageView profileImage = new ImageView(image);
         profileImage.setFitHeight(64);
@@ -302,8 +314,43 @@ public class ChatController implements Initializable {
         Platform.runLater(() -> {
             Label conversationName = new Label(msg.getName());
 
+            propertyBox.getChildren().clear();
             propertyBox.getChildren().add(profileImage);
             propertyBox.getChildren().add(conversationName);
+
+            // if this conversation is a group, display the member of it
+            if (msg.getUserList() != null) {
+                logger.info("get group conversation");
+                // Create a ListView to store the user list
+                ListView<String> userListView = new ListView<>();
+                // Convert ArrayList<User> to ObservableList<String>
+                ObservableList<String> userNames = FXCollections.observableArrayList();
+                for (User user : msg.getUserList()) {
+                    userNames.add(user.getName());
+                }
+                userListView.setItems(userNames);
+
+                // Create a ScrollPane and add the ListView to it
+                ScrollPane scrollPane = new ScrollPane(userListView);
+                scrollPane.setFitToWidth(true); // Ensures ListView width fits ScrollPane
+
+                propertyBox.getChildren().add(new Label());
+                propertyBox.getChildren().add(new Label());
+                
+                VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+                Button addMemberButton = new Button("Add Member");
+                addMemberButton.setMaxWidth(Double.MAX_VALUE);
+                addMemberButton.setOnAction(event -> addGroupMemberHandler());
+                Button outGroupButton = new Button("Out Group");
+                outGroupButton.setMaxWidth(Double.MAX_VALUE);
+                outGroupButton.setOnAction(event -> outGroupHandler());
+                
+                propertyBox.getChildren().add(addMemberButton);
+                propertyBox.getChildren().add(new Label("Group Member"));
+                propertyBox.getChildren().add(scrollPane);
+                propertyBox.getChildren().add(outGroupButton);
+            }
 
             // Center the children within the VBox
             propertyBox.setAlignment(Pos.TOP_CENTER);
@@ -318,8 +365,10 @@ public class ChatController implements Initializable {
             chatPane.getItems().clear();
 
             // add message to it
-            for (Message mes : msg.getContext()) {
-                addMessageToChatView(mes);
+            if (msg.getContext() != null) {
+                for (Message mes : msg.getContext()) {
+                    addMessageToChatView(mes);
+                }
             }
         });
     }

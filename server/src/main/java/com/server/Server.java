@@ -403,9 +403,9 @@ public class Server {
             // logger.debug("User with name "+inputMsg.getName() + " change to conversation with ID = {}" + conID);
             ArrayList<Message> context = new ArrayList<Message>();
             try (Connection connection = DatabaseManager.getConnection()) {
-                logger.info("getConnection() exit");
+                // logger.info("getConnection() exit");
                 if (connection != null) {
-                    logger.info("Successfully connected to the database!");
+                    // logger.info("Successfully connected to the database!");
                 } else {
                     logger.info("Cannot connect to database!");
                     return ;
@@ -418,6 +418,7 @@ public class Server {
                         if (rs.next()) {
                             // check if this conversation is a group
                             if (rs.getInt("is_group") == 0) {
+                                logger.info("This is invidual chat");
                                 // It's not a group, so get the friendship details
                                 try (PreparedStatement st2 = connection.prepareStatement(
                                         "SELECT user1_id, user2_id FROM Friendship WHERE conversation_id = ?")) {
@@ -446,6 +447,45 @@ public class Server {
                                             sendMessageToTarget(this.output, msg);
                                         }
                                     }
+                                }
+                            } else {
+                                logger.info("This is group chat");
+
+                                ArrayList<User> userList = new ArrayList<>();
+                                String groupName;
+
+                                String query = "SELECT u.user_id, u.user_name, gc.group_name " +
+                       "FROM User u " +
+                       "JOIN ChatMember cm ON u.user_id = cm.user_id " +
+                       "JOIN GroupChat gc ON cm.conversation_id = gc.conversation_id " +
+                       "WHERE cm.conversation_id = ?";
+
+                                try (PreparedStatement stmt = connection.prepareStatement(query)) {
+
+                                    stmt.setInt(1, conID);
+
+                                    try (ResultSet rs3 = stmt.executeQuery()) {
+                                        Message msg = new Message();
+                                        msg.setType(MessageType.S_SHOW_CONVERSATION_PROPERTY);
+
+                                        while (rs3.next()) {
+                                            int userID = rs3.getInt("user_id");
+                                            String userName = rs3.getString("user_name");
+                                            groupName = rs3.getString("group_name");
+                                            msg.setName(groupName);
+                                            
+                                            User user = new User(); // Assuming User class constructor
+                                            user.setID(userID);
+                                            user.setName(userName);
+                                            userList.add(user);
+                                        }
+
+                                        msg.setUserList(userList);
+                                        sendMessageToTarget(this.output, msg);
+                                    }
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                    // Handle SQL exception
                                 }
                             }
                         }
@@ -923,7 +963,7 @@ public class Server {
                 }
 
                 // Check if user already in group
-                String deleteUserQuery = "DELETE FROM ChatMember WHERE group_id=? AND receiver_id=?";
+                String deleteUserQuery = "DELETE FROM ChatMember WHERE conversation_id=? AND user_id=?";
                 try (PreparedStatement stateDelete = connection.prepareStatement(deleteUserQuery)) {
                     stateDelete.setInt(1, conversationId);
                     stateDelete.setInt(2, user.getID());

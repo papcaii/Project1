@@ -427,12 +427,11 @@ public class Listener implements Runnable {
     }
 
     // user out group
-    public void outGroup(String userName, Conversation group) throws IOException {
+    public void outGroup(int conversationID) throws IOException {
     	try {
             Message msg = new Message();
-            msg.setName(username);
-            msg.setTargetConversationID(group.getConversationID());
-            msg.setMsg(group.getConversationName());
+            msg.setName(this.username);
+            msg.setTargetConversationID(conversationID);
             msg.setType(MessageType.C_REMOVE_FROM_GROUP);
             this.output.writeObject(msg);
             this.output.flush();

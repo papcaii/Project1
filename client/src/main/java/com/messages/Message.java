@@ -70,7 +70,7 @@ public class Message implements Serializable {
     }
 
 // Setter
-    public void setUserlist(ArrayList<User> userList) {
+    public void setUserList(ArrayList<User> userList) {
         this.userList = userList;
     }
 
