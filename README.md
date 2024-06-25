@@ -28,6 +28,7 @@ Please refer to the [Requirement](Requirement.MD) document.
 ## Setup Instructions
 
 ### Set up Database
+[!] You have to do this if you want to run client on your own
 1. **Using Docker Compose**:
     - Ensure Docker and Docker Compose are installed on your machine.
     - Run the following command in the directory containing the `docker-compose.yml` file:
@@ -35,8 +36,12 @@ Please refer to the [Requirement](Requirement.MD) document.
     docker-compose up -d
     ```
     - This will:
-        - Create a MySQL server accessible at `localhost:3307`.
-        - Host Adminer (a database manager) at `localhost:8081`.
+        - Create a MySQL server accessible at `localhost:3307`
+        - Host Adminer (a database manager) at `localhost:8081`
+     
+    - Finally, browse to `localhost:8081` (adminer)
+        - Login with username and password init in the `docker-compose.yml`
+        - Choose database `chat-app` then run the sql init command in the file `sql-init.txt`
 
 2. **Expose the Port with Ngrok**:
     - Install Ngrok from [here](https://ngrok.com/download).
