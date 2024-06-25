@@ -66,25 +66,22 @@ public class GroupInvitationController implements Initializable {
     */
     public void confirmHandler() {
         try {
-            String name = nameTextField.getText();
-            if (name == null || name.isEmpty()) {
+            String groupName = nameTextField.getText();
+            if (groupName == null || groupName.isEmpty()) {
                 LoginController.showErrorDialog("Group name cannot be empty");
                 return;
             }
 
             // listener send add friend action to server
             if (listener != null) {
-                listener.addFriend(name);
+                listener.createGroup(groupName);
             } else {
                 LoginController.showErrorDialog("Listener is not initialized");
             }
 
         } catch (IOException e) {
             e.printStackTrace();
-            LoginController.showErrorDialog("Failed to add friend: " + e.getMessage());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            LoginController.showErrorDialog("Not found class: " + e.getMessage());
+            LoginController.showErrorDialog("Failed create new group!");
         }
     }
 

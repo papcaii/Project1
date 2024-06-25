@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS Friendship (
 
 CREATE TABLE IF NOT EXISTS GroupChat (
     group_id INT PRIMARY KEY AUTO_INCREMENT,
+    group_name VARCHAR(255) NOT NULL,
     conversation_id INT,
     group_admin INT,
     FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE,

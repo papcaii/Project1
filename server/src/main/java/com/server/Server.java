@@ -190,8 +190,8 @@ public class Server {
                                 break;
 
                             case C_CREATE_GROUP:
-                            	User userAdminGroup=names.get(inputmsg.getName());
-                            	createNewGroup(userAdminGroup,inputmsg.getMsg());
+                            	User adminGroupUser = names.get(inputmsg.getName());
+                            	createNewGroup(adminGroupUser, inputmsg.getMsg());
                             	break;
                             
                             case C_SEND_GROUP_REQUEST:
@@ -332,11 +332,7 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Group "+groupName+" has been created by "+userAdmin.getName());
-                         Message msg = new Message();
-                         msg.setType(MessageType.S_CREATE_GROUP);
-                         msg.setMsg(groupName);
-                         msg.setTargetConversationID(conversationId); // send group id for listener 
-                         sendMessageToTarget(output, msg);
+                        sendNotificationToUser(this.output, "Successfully create new group with name " + groupName);
                     } else {
                         logger.error("Failed to create group {} from user {}", groupName, userAdmin.getName());
                     }
@@ -1269,6 +1265,27 @@ public class Server {
                             conversation.setConversationID(rs.getInt("conversation_id"));
                             conversation.setConversationName(friend.getName());
                             conversation.setUserStatus(friend.getStatus());
+                            conversation.setGroup(false);
+
+                            logger.info("Loaded a conversation with id " + rs.getInt("conversation_id"));
+                            userConversationMap.put(rs.getInt("conversation_id"), conversation);
+                        }
+                    }
+                }
+
+                // get friend's info and convert to conversation
+                String queryGroupNameSQL = "SELECT gc.group_name, cm.conversation_id FROM ChatMember cm JOIN GroupChat gc ON cm.conversation_id = gc.conversation_id WHERE cm.user_id = ?;";
+                try (PreparedStatement st = connection.prepareStatement(queryGroupNameSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    st.setInt(1, userID);
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+
+                            Conversation conversation = new Conversation();
+                            conversation.setConversationID(rs.getInt("conversation_id"));
+                            conversation.setConversationName(rs.getString("group_name"));
+                            conversation.setUserStatus(Status.ONLINE);
+                            conversation.setGroup(true);
 
                             logger.info("Loaded a conversation with id " + rs.getInt("conversation_id"));
                             userConversationMap.put(rs.getInt("conversation_id"), conversation);
@@ -1285,6 +1302,7 @@ public class Server {
 
             } catch (SQLException sqlException) {
                 logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                sendErrorToUser(this.output, "Get error when load conversation");
             }
         }
 

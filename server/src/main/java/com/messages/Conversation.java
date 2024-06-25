@@ -18,15 +18,19 @@ public class Conversation implements Serializable {
 	public boolean isGroup() {
 		return isGroup;
 	}
+	
 	public void setGroup(boolean isGroup) {
 		this.isGroup = isGroup;
 	}
+
 	public User getGroupMaster() {
 		return groupMaster;
 	}
+
 	public void setGroupMaster(User groupMaster) {
 		this.groupMaster = groupMaster;
 	}
+
 	public int getConversationID() {
 		return conversationId;
 	}

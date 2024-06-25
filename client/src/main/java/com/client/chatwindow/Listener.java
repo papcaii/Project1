@@ -286,16 +286,16 @@ public class Listener implements Runnable {
     }
     
     // send create new group to server 
-    public void createGroup(String userName,String groupName) throws IOException{
-    	logger.info("Group with name "+groupName+" has been request from "+userName+" to created");
+    public void createGroup(String groupName) throws IOException{
+    	logger.info("Group with name " + groupName + " has been request from " + this.username + " to created");
     	try {
-            Message validateMessage = new Message();
-            validateMessage.setName(username);
-            validateMessage.setMsg(groupName);
-            validateMessage.setType(MessageType.C_CREATE_GROUP);
-            this.output.writeObject(validateMessage);
+            Message sendMessage = new Message();
+            sendMessage.setName(this.username);
+            sendMessage.setMsg(groupName);
+            sendMessage.setType(MessageType.C_CREATE_GROUP);
+            this.output.writeObject(sendMessage);
             this.output.flush();
-            logger.debug("Sent validation message: " + validateMessage);
+            // logger.debug("Sent message: " + sendMessage);
             
         } catch (IOException e) {
             logger.error("Exception in connect method: " + e.getMessage(), e);
