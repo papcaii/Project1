@@ -534,7 +534,7 @@ public class Server {
                     }
 
                     // Send this to allow this user to login
-                    logger.info("Get all context from conversation {}"+conID);
+                    logger.info("Get all context from conversation {}",conID);
                     Message msg = new Message();
                     msg.setType(MessageType.S_SHOW_CONVERSATION_CHAT);
                     msg.setContext(context);
