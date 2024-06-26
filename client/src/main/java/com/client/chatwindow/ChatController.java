@@ -134,8 +134,8 @@ public class ChatController implements Initializable {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupAddView.fxml"));
             BorderPane window = fxmlLoader.load();
-            groupInvitationCon = fxmlLoader.getController();
-            groupInvitationCon.setListener(this.listener);
+            groupAddCon = fxmlLoader.getController();
+            groupAddCon.setListener(this.listener);
 
             Stage stage = (Stage) messageBox.getScene().getWindow();
             Scene scene = new Scene(window);

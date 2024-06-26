@@ -204,6 +204,17 @@ public class Listener implements Runnable {
                         	
                         // show all request from group 
                         case S_GET_GROUP_REQUEST:
+                        	while (groupAddCon == null) {
+                                try {
+                                    logger.info("Waiting for groupAddCon to be initialized...");
+                                    TimeUnit.SECONDS.sleep(1);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt(); // Restore interrupted status
+                                    logger.error("Thread was interrupted", e);
+                                }
+                            }
+                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
+                            groupAddCon.setUserListView(requestGroupList);
                         	break;
                         
                         // add people to  group

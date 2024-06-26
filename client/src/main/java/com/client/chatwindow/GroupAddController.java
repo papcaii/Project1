@@ -81,13 +81,13 @@ public class GroupAddController implements Initializable {
         });
     }
 
-    public void setUserListView(ArrayList<Conversation> userConversationList) {
+    public void setUserListView(ArrayList<Conversation> groupConversationList) {
         logger.info("setUserListView() method Enter");
         
         Platform.runLater(() -> {
             try {
                 // Update user list view
-                ObservableList<Conversation> conversationList = FXCollections.observableList(userConversationList);
+                ObservableList<Conversation> conversationList = FXCollections.observableList(groupConversationList);
                 requestListView.setItems(conversationList);
                 requestListView.setCellFactory(new CellRenderer());
             
@@ -99,7 +99,7 @@ public class GroupAddController implements Initializable {
     }
     
     /*
-    ** Confirm button handler -> add friend
+    ** Confirm button handler -> send request
     */
     public void confirmHandler() {
         try {
