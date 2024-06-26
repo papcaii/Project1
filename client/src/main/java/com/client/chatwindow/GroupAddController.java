@@ -43,10 +43,21 @@ public class GroupAddController implements Initializable {
     
     private static ChatController chatCon;
     private static Listener listener;
+    private static GroupAddController instance;
 
     private String currentTargetName;
+    
+    private Conversation groupNow;
 
     Logger logger = LoggerFactory.getLogger(FriendRequestController.class);
+
+    public GroupAddController() {
+        instance = this;
+    }
+
+    public static GroupAddController getInstance() {
+        return instance;
+    }
 
     public void setListener(Listener listener) {
         this.listener = listener;
@@ -55,39 +66,60 @@ public class GroupAddController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize any required data or components here
+        // Add to track userListView
+        requestListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
+            @Override
+            public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
+                if (newRequest != null) {
+                    currentTargetName = newRequest.getConversationName();
+                    logger.info("ListView selection changed to newValue = " + currentTargetName);
+                } else {
+                    currentTargetName = null;
+                    logger.info("ListView selection cleared.");
+                }           
+            }
+        });
     }
 
     public void setUserListView(ArrayList<Conversation> userConversationList) {
-
+        logger.info("setUserListView() method Enter");
+        
+        Platform.runLater(() -> {
+            try {
+                // Update user list view
+                ObservableList<Conversation> conversationList = FXCollections.observableList(userConversationList);
+                requestListView.setItems(conversationList);
+                requestListView.setCellFactory(new CellRenderer());
+            
+        } catch (Exception e) {
+                logger.error("Error updating user list", e);
+        }
+    });
+        logger.info("setConversationListView() method Exit");
     }
     
     /*
-    ** Confirm button handler -> create group
+    ** Confirm button handler -> add friend
     */
     public void confirmHandler() {
         try {
-            String groupName = nameTextField.getText();
-            if (groupName == null || groupName.isEmpty()) {
-                LoginController.showErrorDialog("Group name cannot be empty");
+            String userName = nameTextField.getText();
+            if (userName == null || userName.isEmpty()) {
+                LoginController.showErrorDialog("Name cannot be empty");
                 return;
             }
 
-            if (groupName.length()>250) {
-                LoginController.showErrorDialog("Group name is too long");
-                return;
-            }
-            
             // listener send add friend action to server
             if (listener != null) {
-                listener.createGroup(groupName);
+                listener.sendGroupRequest(userName,groupNow);
             } else {
                 LoginController.showErrorDialog("Listener is not initialized");
             }
 
         } catch (IOException e) {
             e.printStackTrace();
-            LoginController.showErrorDialog("Failed create new group!");
-        }
+            LoginController.showErrorDialog("Failed to add friend: " + e.getMessage());
+        } 
     }
 
     public void acceptHandler(ActionEvent event) throws IOException, ClassNotFoundException {
