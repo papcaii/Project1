@@ -282,7 +282,7 @@ public class Server {
                 }
 
                 // Insert new join request
-                String insertFriendshipQuery = "INSERT INTO GroupRequest (sender_id, receiver_id, conversation_id, create_dt) VALUES (?, ?, ?, NOW())";
+                String insertFriendshipQuery = "INSERT INTO GroupRequest (sender_id, receiver_id, conversation_id) VALUES (?, ?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
 
                     st.setInt(1, userAdmin.getID());
