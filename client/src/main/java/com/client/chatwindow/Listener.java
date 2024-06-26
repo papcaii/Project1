@@ -31,6 +31,7 @@ public class Listener implements Runnable {
 
     public ChatController chatCon;
     public AddFriendController addFriendCon;
+    public GroupAddController groupAddCon;
     
     private InputStream is;
     private OutputStream os;
@@ -54,10 +55,14 @@ public class Listener implements Runnable {
         this.chatCon = chatCon;
     }
 
-    public void setAddFriendController(AddFriendController addFriendCon) {
+    public void setGroupAddCon(GroupAddController groupChatCon) {
+		this.groupAddCon = groupChatCon;
+	}
+
+	public void setAddFriendController(AddFriendController addFriendCon) {
         this.addFriendCon = addFriendCon;
     }
-
+    
     public boolean isReady() {
         return this.socketReady;
     }
