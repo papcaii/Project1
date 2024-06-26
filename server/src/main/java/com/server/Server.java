@@ -1313,11 +1313,10 @@ public class Server {
                     }
                 }
 
-                // get friend's info and convert to conversation
+                // get query to group conversation
                 String queryGroupNameSQL = "SELECT gc.group_name, cm.conversation_id FROM ChatMember cm JOIN GroupChat gc ON cm.conversation_id = gc.conversation_id WHERE cm.user_id = ?;";
                 try (PreparedStatement st = connection.prepareStatement(queryGroupNameSQL, Statement.RETURN_GENERATED_KEYS)) {
                     st.setInt(1, userID);
-
                     try (ResultSet rs = st.executeQuery()) {
                         while (rs.next()) {
 
