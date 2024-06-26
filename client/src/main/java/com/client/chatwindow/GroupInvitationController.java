@@ -44,7 +44,7 @@ public class GroupInvitationController implements Initializable {
     private static ChatController chatCon;
     private static Listener listener;
 
-    private String currentTargetName;
+    private Conversation currentGroup;
 
     Logger logger = LoggerFactory.getLogger(FriendRequestController.class);
 
@@ -55,6 +55,19 @@ public class GroupInvitationController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize any required data or components here
+        // Add to track userListView
+        requestListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Conversation>() {
+            @Override
+            public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
+                if (newRequest != null) {
+                    currentGroup = newRequest;
+                    logger.info("ListView selection changed to newValue = " + currentGroup.getConversationName());
+                } else {
+                    currentGroup = null;
+                    logger.info("ListView selection cleared.");
+                }           
+            }
+        });
     }
 
     public void setUserListView(ArrayList<Conversation> groupConversationList) {
@@ -104,18 +117,18 @@ public class GroupInvitationController implements Initializable {
     }
 
     public void acceptHandler(ActionEvent event) throws IOException, ClassNotFoundException {
-        if (this.currentTargetName == null) {
+        if (this.currentGroup == null) {
             LoginController.showErrorDialog("Must choose request to accept");
             return;
         }
 
         // Prompt user for confirmation
-        if (!LoginController.showConfirmationDialog("Do you want to accept friend request from user " + this.currentTargetName + "?")) {
+        if (!LoginController.showConfirmationDialog("Do you want to accept "+currentGroup.getConversationName()+" group request from user " + currentGroup.getGroupMaster().getName() + "?")) {
             return;
         }
 
         if (listener != null) {
-            listener.createFriendShip(currentTargetName);
+            listener.joinToGroup(currentGroup);
         } else {
             LoginController.showErrorDialog("Listener is not initialized");
         }
@@ -124,18 +137,18 @@ public class GroupInvitationController implements Initializable {
 
     public void declineHandler(ActionEvent event) throws IOException, ClassNotFoundException{
 
-        if (this.currentTargetName == null) {
+        if (this.currentGroup == null) {
             LoginController.showErrorDialog("Must choose request to decline");
             return;
         }
 
         // Prompt user for confirmation
-        if (!LoginController.showConfirmationDialog("Do you want to decline friend request from user " + this.currentTargetName + "?")) {
+        if (!LoginController.showConfirmationDialog("Do you want to decline invitation to group "+ currentGroup.getConversationName() +" from "+currentGroup.getGroupMaster()+"?")) {
             return;
         }
 
         if (listener != null) {
-            listener.declineFriendRequest(currentTargetName);
+            listener.declineGroupRequest(currentGroup);
         } else {
             LoginController.showErrorDialog("Listener is not initialized");
         }

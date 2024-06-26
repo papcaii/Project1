@@ -45,7 +45,7 @@ public class GroupAddController implements Initializable {
     private static Listener listener;
     private static GroupAddController instance;
 
-    private String currentTargetName;
+    private Conversation currentGroup;
     
     private int groupNow;
 
@@ -79,10 +79,10 @@ public class GroupAddController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {
-                    currentTargetName = newRequest.getConversationName();
-                    logger.info("ListView selection changed to newValue = " + currentTargetName);
+                    currentGroup = newRequest;
+                    logger.info("ListView selection changed to newValue = " + currentGroup);
                 } else {
-                    currentTargetName = null;
+                	currentGroup = null;
                     logger.info("ListView selection cleared.");
                 }
             }
@@ -131,18 +131,18 @@ public class GroupAddController implements Initializable {
     }
 
     public void acceptHandler(ActionEvent event) throws IOException, ClassNotFoundException {
-        if (this.currentTargetName == null) {
+        if (this.currentGroup == null) {
             LoginController.showErrorDialog("Must choose request to accept");
             return;
         }
 
         // Prompt user for confirmation
-        if (!LoginController.showConfirmationDialog("Do you want to accept friend request from user " + this.currentTargetName + "?")) {
+        if (!LoginController.showConfirmationDialog("Do you want to accept "+currentGroup.getConversationName()+" group request from user " + currentGroup.getGroupMaster().getName() + "?")) {
             return;
         }
 
         if (listener != null) {
-            listener.joinToGroup(currentTargetName, groupNow);
+            listener.joinToGroup(currentGroup);
         } else {
             LoginController.showErrorDialog("Listener is not initialized");
         }
@@ -151,18 +151,18 @@ public class GroupAddController implements Initializable {
 
     public void declineHandler(ActionEvent event) throws IOException, ClassNotFoundException{
 
-        if (this.currentTargetName == null) {
+        if (this.currentGroup == null) {
             LoginController.showErrorDialog("Must choose request to decline");
             return;
         }
 
         // Prompt user for confirmation
-        if (!LoginController.showConfirmationDialog("Do you want to decline friend request from user " + this.currentTargetName + "?")) {
+        if (!LoginController.showConfirmationDialog("Do you want to decline invitation to group "+ currentGroup.getConversationName() +" from "+currentGroup.getGroupMaster()+"?")) {
             return;
         }
 
         if (listener != null) {
-            listener.declineFriendRequest(currentTargetName);
+            listener.declineGroupRequest(currentGroup);
         } else {
             LoginController.showErrorDialog("Listener is not initialized");
         }

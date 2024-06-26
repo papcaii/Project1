@@ -72,7 +72,11 @@ public class Listener implements Runnable {
         return this.socketReady;
     }
 
-    public void run() {
+    public String getUsername() {
+		return username;
+	}
+
+	public void run() {
         try {
             socket = new Socket(this.hostname, this.port);
 
@@ -425,6 +429,16 @@ public class Listener implements Runnable {
         this.output.writeObject(declineMessage);
         this.output.flush();
     }
+    
+    public void declineGroupRequest(Conversation group) throws IOException{
+    	Message declineMessage = new Message();
+        declineMessage.setName(this.getUsername());
+        declineMessage.setTargetConversationID(group.getConversationID());
+        declineMessage.setMsg(group.getConversationName());
+        declineMessage.setType(MessageType.C_DECLINE_GROUP_REQUEST);
+        this.output.writeObject(declineMessage);
+        this.output.flush();
+	}
 
     // get full group requests
     public void getGroupRequest(String inputController) throws IOException {
@@ -466,11 +480,11 @@ public class Listener implements Runnable {
     }
 
     // user out group
-    public void outGroup(int conversationID) throws IOException {
+    public void outGroup(int groupID) throws IOException {
     	try {
             Message msg = new Message();
             msg.setName(this.username);
-            msg.setTargetConversationID(conversationID);
+            msg.setTargetConversationID(groupID);
             msg.setType(MessageType.C_REMOVE_FROM_GROUP);
             this.output.writeObject(msg);
             this.output.flush();
@@ -485,12 +499,13 @@ public class Listener implements Runnable {
     }
     
     // user join group
-    public void joinToGroup(String userName, int groupID) throws IOException {
+    public void joinToGroup(Conversation group) throws IOException {
+    	int groupID=group.getConversationID();
     	try {
             Message msg = new Message();
             msg.setName(username);
             msg.setTargetConversationID(groupID);
-            //msg.setMsg(group.getConversationName());
+            msg.setMsg(group.getConversationName());
             msg.setType(MessageType.C_ADD_PEOPLE_TO_GROUP);
             this.output.writeObject(msg);
             this.output.flush();
@@ -525,4 +540,6 @@ public class Listener implements Runnable {
             logger.error("Failed to close resources", e);
         }
     }
+
+	
 }

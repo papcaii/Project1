@@ -188,6 +188,10 @@ public class Server {
                             case C_DECLINE_FRIEND_REQUEST:
                                 declineFriendRequest(inputmsg);
                                 break;
+                            
+                            case C_DECLINE_GROUP_REQUEST:
+                            	declineGroupRequest(inputmsg);
+                                break;
 
                             case C_CREATE_GROUP:
                             	User adminGroupUser = names.get(inputmsg.getName());
@@ -956,7 +960,7 @@ public class Server {
         
         private void removeUserFromGroup(Message message) throws IOException, InvalidUserException {
             User user = names.get(message.getName());
-            int conversationId=message.getTargetConversationID();
+            int groupId=message.getTargetConversationID();
 
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
@@ -967,7 +971,7 @@ public class Server {
                 // Check if user already in group
                 String deleteUserQuery = "DELETE FROM ChatMember WHERE conversation_id=? AND user_id=?";
                 try (PreparedStatement stateDelete = connection.prepareStatement(deleteUserQuery)) {
-                    stateDelete.setInt(1, conversationId);
+                    stateDelete.setInt(1, groupId);
                     stateDelete.setInt(2, user.getID());
 
                     int affectedRows = stateDelete.executeUpdate();
@@ -986,7 +990,8 @@ public class Server {
         // 
         private boolean addUserToGroup(Message message) throws InvalidUserException {
             User user = names.get(message.getName());
-            int conversationId=message.getTargetConversationID();
+            int groupId=message.getTargetConversationID();
+            String groupName=message.getMsg();
 
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
@@ -997,7 +1002,7 @@ public class Server {
                 // Check if user already in group
                 String checkFriendshipQuery = "SELECT * FROM ChatMember WHERE conversation_id=? AND user_id=?";
                 try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
-                    st.setInt(1, conversationId);
+                    st.setInt(1, groupId);
                     st.setInt(2, user.getID());
 
                     try (ResultSet rs = st.executeQuery()) {
@@ -1013,7 +1018,7 @@ public class Server {
                 // Delete group request
                 String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE group_id=? AND receiver_id=?";
                 try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
-                    st.setInt(1, conversationId);
+                    st.setInt(1, groupId);
                     st.setInt(2, user.getID());
 
                     int affectedRows = st.executeUpdate();
@@ -1028,16 +1033,16 @@ public class Server {
                 // Make friendship
                 String insertFriendshipQuery = "INSERT INTO ChatMember (conversation_id, user_id) VALUES (?, ?)";
                 try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
-                    st.setInt(1, message.getTargetConversationID());
+                    st.setInt(1, groupId);
                     st.setInt(2, user.getID());
 
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("You has been join group " + message.getMsg());
-                        sendNotificationToUser(this.output, "You has been join group " + conversationId);
+                        sendNotificationToUser(this.output, "You has been join group " + groupName);
                         return true;
                     } else {
-                        logger.error("Failed to join grop " + conversationId);
+                        logger.error("Failed to join grop " + groupName);
                         return false;
                     }
                 }
@@ -1146,6 +1151,44 @@ public class Server {
                 try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
                     st.setInt(1, requestID);
                     st.setInt(2, receiverID);
+
+                    int affectedRows = st.executeUpdate();
+                    if (affectedRows > 0) {
+                        sendNotificationToUser(this.output, "Successfully delete friend request from " + message.getName());
+                    } else {
+                        logger.error("Cant delete friend request or not exist");
+                        sendNotificationToUser(this.output, "Fail to delete friend request from " + message.getName());
+                        return false;
+                    }
+                    return true;
+                }
+
+            } catch (SQLException sqlException) {
+                logger.error("SQL Exception: " + sqlException.getMessage(), sqlException);
+                return false;
+            } catch (IOException ioException) {
+                logger.error("IO Exception: " + ioException.getMessage(), ioException);
+                return false;
+            }
+        }
+        
+        private boolean declineGroupRequest(Message message) throws InvalidUserException {
+            User requestUser = names.get(message.getName());
+            int requestID = requestUser.getID();
+            int receiverID = this.user.getID();
+
+            try (Connection connection = DatabaseManager.getConnection()) {
+                if (connection == null) {
+                    logger.error("Cannot connect to database!");
+                    return false;
+                }
+
+                // Delete friend request
+                String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE sender_id=? AND receiver_id=? AND conversation_id=?";
+                try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
+                    st.setInt(1, requestID);
+                    st.setInt(2, receiverID);
+                    st.setInt(3, receiverID);
 
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
