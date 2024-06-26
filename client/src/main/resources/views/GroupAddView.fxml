@@ -47,7 +47,7 @@
                   <Button mnemonicParsing="false" onAction="#confirmHandler" prefHeight="59.0" prefWidth="90.0" text="Add" />
                </children>
             </HBox>
-            <Label alignment="CENTER" prefHeight="50.0" prefWidth="507.0" text="Group Invitation" GridPane.columnIndex="1" GridPane.rowIndex="2">
+            <Label alignment="CENTER" prefHeight="50.0" prefWidth="507.0" text="Group Add Member" GridPane.columnIndex="1" GridPane.rowIndex="2">
                <font>
                   <Font name="Roboto" size="18.0" />
                </font>

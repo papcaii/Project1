@@ -31,6 +31,7 @@ public class Listener implements Runnable {
 
     public ChatController chatCon;
     public AddFriendController addFriendCon;
+    public GroupInvitationController groupInvitationCon;
     public GroupAddController groupAddCon;
     
     private InputStream is;
@@ -54,6 +55,10 @@ public class Listener implements Runnable {
     public void setChatController(ChatController chatCon) {
         this.chatCon = chatCon;
     }
+
+	public void setGroupInvitationCon(GroupInvitationController groupInvitationCon) {
+		this.groupInvitationCon = groupInvitationCon;
+	}
 
 	public void setGroupAddCon(GroupAddController groupAddCon) {
 		this.groupAddCon = groupAddCon;
@@ -204,17 +209,33 @@ public class Listener implements Runnable {
                         	
                         // show all request from group 
                         case S_GET_GROUP_REQUEST:
-                        	while (groupAddCon == null) {
-                                try {
-                                    logger.info("Waiting for groupAddCon to be initialized...");
-                                    TimeUnit.SECONDS.sleep(1);
-                                } catch (InterruptedException e) {
-                                    Thread.currentThread().interrupt(); // Restore interrupted status
-                                    logger.error("Thread was interrupted", e);
-                                }
-                            }
-                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
-                            groupAddCon.setUserListView(requestGroupList);
+                        	logger.info("The context of message is " + message.getMsg());
+                        	if (message.getMsg().equals("GroupAddController")) {
+	                        	while (groupAddCon == null) {
+	                                try {
+	                                    logger.info("Waiting for groupAddCon to be initialized...");
+	                                    TimeUnit.SECONDS.sleep(1);
+	                                } catch (InterruptedException e) {
+	                                    Thread.currentThread().interrupt(); // Restore interrupted status
+	                                    logger.error("Thread was interrupted", e);
+	                                }
+	                            }
+	                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
+	                            groupAddCon.setUserListView(requestGroupList);
+                        	}
+                        	else {
+                        		while (groupInvitationCon == null) {
+	                                try {
+	                                    logger.info("Waiting for groupInvitationCon to be initialized...");
+	                                    TimeUnit.SECONDS.sleep(1);
+	                                } catch (InterruptedException e) {
+	                                    Thread.currentThread().interrupt(); // Restore interrupted status
+	                                    logger.error("Thread was interrupted", e);
+	                                }
+	                            }
+	                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
+	                            groupInvitationCon.setUserListView(requestGroupList);
+                        	}
                         	break;
                         
                         // add people to  group
@@ -406,11 +427,13 @@ public class Listener implements Runnable {
     }
 
     // get full group requests
-    public void getGroupRequest() throws IOException {
+    public void getGroupRequest(String inputController) throws IOException {
         try {
             Message msg = new Message();
             msg.setName(username);
             msg.setType(MessageType.C_GET_GROUP_REQUEST);
+            msg.setMsg(inputController);
+            logger.info("the inputController in server is " + inputController);
             this.output.writeObject(msg);
             this.output.flush();
             

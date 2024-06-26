@@ -897,6 +897,8 @@ public class Server {
                 Message msg = new Message();
                 msg.setType(MessageType.S_GET_GROUP_REQUEST);
                 msg.setConversationMap(requestMap);
+                msg.setMsg(inputMsg.getMsg());
+                logger.info("the context of message in server is " + inputMsg.getMsg());
                 sendMessageToTarget(output, msg);
 
             } catch (SQLException e) {

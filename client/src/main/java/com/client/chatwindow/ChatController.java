@@ -157,6 +157,8 @@ public class ChatController implements Initializable {
             BorderPane window = fxmlLoader.load();
             groupInvitationCon = fxmlLoader.getController();
             groupInvitationCon.setListener(this.listener);
+            listener.setGroupInvitationCon(groupInvitationCon);
+            listener.getGroupRequest("GroupInvitationController");
 
             Stage stage = (Stage) messageBox.getScene().getWindow();
             Scene scene = new Scene(window);
@@ -180,7 +182,7 @@ public class ChatController implements Initializable {
             groupAddCon.setListener(this.listener);
             groupAddCon.setGroupNow(currentTargetConversationID);
             listener.setGroupAddCon(groupAddCon);
-            listener.getGroupRequest();
+            listener.getGroupRequest("GroupAddController");
             logger.info("set listener to add member to group controller");
 
             Stage stage = (Stage) messageBox.getScene().getWindow();
@@ -224,7 +226,6 @@ public class ChatController implements Initializable {
                 chatPane.getItems().clear();
                 propertyBox.getChildren().clear();
                 this.listener.sendUpdateConversationRequest();
-
             } catch (Exception e) {
                 logger.error("Error updating user list", e);
             }
@@ -314,7 +315,7 @@ public class ChatController implements Initializable {
     }
     
     public void setConversationListView(Message msg) {
-        logger.info("setConversationListView() method Enter");
+        logger.info("setConversationListView() from ChatController method Enter");
         HashMap<Integer, Conversation> conversationMap = msg.getConversationMap();
         logger.info("Size of conversationMap: " + conversationMap.size());
 

@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 public class GroupInvitationController implements Initializable {
     @FXML private TextField nameTextField;
-    @FXML private ListView requestListView;
+    @FXML private ListView<Conversation> requestListView;
     
     private static ChatController chatCon;
     private static Listener listener;
@@ -57,8 +57,21 @@ public class GroupInvitationController implements Initializable {
         // Initialize any required data or components here
     }
 
-    public void setUserListView(ArrayList<Conversation> userConversationList) {
-
+    public void setUserListView(ArrayList<Conversation> groupConversationList) {
+        logger.info("setUserListView() from GroupInvitationController method Enter");
+        
+        Platform.runLater(() -> {
+            try {
+                // Update user list view
+                ObservableList<Conversation> conversationList = FXCollections.observableList(groupConversationList);
+                requestListView.setItems(conversationList);
+                requestListView.setCellFactory(new CellRenderer());
+            
+	        } catch (Exception e) {
+	                logger.error("Error updating user list", e);
+	        }
+	    });
+        logger.info("setConversationListView() method Exit");
     }
     
     /*

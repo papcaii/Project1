@@ -84,13 +84,13 @@ public class GroupAddController implements Initializable {
                 } else {
                     currentTargetName = null;
                     logger.info("ListView selection cleared.");
-                }           
+                }
             }
         });
     }
 
     public void setUserListView(ArrayList<Conversation> groupConversationList) {
-        logger.info("setUserListView() method Enter");
+        logger.info("setUserListView() from GroupAddController method Enter");
         
         Platform.runLater(() -> {
             try {
@@ -99,10 +99,10 @@ public class GroupAddController implements Initializable {
                 requestListView.setItems(conversationList);
                 requestListView.setCellFactory(new CellRenderer());
             
-        } catch (Exception e) {
-                logger.error("Error updating user list", e);
-        }
-    });
+	        } catch (Exception e) {
+	                logger.error("Error updating user list", e);
+	        }
+	    });
         logger.info("setConversationListView() method Exit");
     }
     
