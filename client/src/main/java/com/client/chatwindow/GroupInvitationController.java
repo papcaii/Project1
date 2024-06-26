@@ -72,6 +72,11 @@ public class GroupInvitationController implements Initializable {
                 return;
             }
 
+            if (groupName.length()>250) {
+                LoginController.showErrorDialog("Group name is too long");
+                return;
+            }
+            
             // listener send add friend action to server
             if (listener != null) {
                 listener.createGroup(groupName);
