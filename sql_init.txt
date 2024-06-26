@@ -33,8 +33,7 @@ CREATE TABLE IF NOT EXISTS Friendship (
 );
 
 CREATE TABLE IF NOT EXISTS GroupChat (
-    group_id INT PRIMARY KEY AUTO_INCREMENT,
-    group_name VARCHAR(255) NOT NULL,
+    group_name VARCHAR(255),
     conversation_id INT,
     group_admin INT,
     FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -52,11 +51,11 @@ CREATE TABLE IF NOT EXISTS ChatMember (
 
 CREATE TABLE IF NOT EXISTS GroupRequest (
     sender_id INT,
-    group_id INT,
+    conversation_id INT,
     sent_datetime DATETIME NOT NULL DEFAULT NOW(),
     receiver_id INT,
     FOREIGN KEY (sender_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES GroupChat(group_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (conversation_id) REFERENCES Conversation(conversation_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (receiver_id) REFERENCES User(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
