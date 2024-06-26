@@ -1017,7 +1017,7 @@ public class Server {
                 }
 
                 // Delete group request
-                String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE group_id=? AND receiver_id=?";
+                String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE conversation_id=? AND receiver_id=?";
                 try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
                     st.setInt(1, groupId);
                     st.setInt(2, user.getID());

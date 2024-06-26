@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 public class GroupAddController implements Initializable {
     @FXML private TextField nameTextField;
-    @FXML private ListView requestListView;
+    @FXML private ListView<Conversation> requestListView;
     
     private static ChatController chatCon;
     private static Listener listener;

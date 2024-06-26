@@ -238,9 +238,6 @@ public class Listener implements Runnable {
 	                                }
 	                            }
 	                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
-	                            for (int i=0;i<requestGroupList.size();i++) {
-	                            	logger.info("demo info admin "+requestGroupList.get(i).getGroupMaster());
-	                            }
 	                            groupInvitationCon.setUserListView(requestGroupList);
                         	}
                         	break;
