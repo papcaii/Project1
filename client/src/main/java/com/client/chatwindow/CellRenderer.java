@@ -67,7 +67,11 @@ class CellRenderer implements Callback<ListView<Conversation>,ListCell<Conversat
                 if (conversation != null) {
                     HBox hBox = new HBox();
 
-                    Text name = new Text(conversation.getConversationName());
+                    String information=conversation.getConversationName();
+                    if (conversation.isGroup()) {
+                    	information = "Group "+information + " from " + conversation.getGroupMaster().getName();
+                    }
+                    Text name = new Text(information);
                     
                     ImageView pictureImageView = new ImageView();
                     Image image = new Image(getClass().getClassLoader().getResource("images/default.png").toString(),50,50,true,true);

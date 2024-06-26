@@ -46,22 +46,12 @@ public class GroupAddController implements Initializable {
     private static GroupAddController instance;
 
     private Conversation currentGroup;
-    
-    private int groupNow;
 
     Logger logger = LoggerFactory.getLogger(GroupAddController.class);
 
     public GroupAddController() {
         instance = this;
     }
-
-    public int getGroupNow() {
-		return groupNow;
-	}
-
-	public void setGroupNow(int groupNow) {
-		this.groupNow = groupNow;
-	}
 
 	public static GroupAddController getInstance() {
         return instance;
@@ -119,7 +109,7 @@ public class GroupAddController implements Initializable {
 
             // listener send add friend action to server
             if (listener != null) {
-                listener.sendGroupRequest(userName,groupNow);
+                listener.sendGroupRequest(userName,currentGroup);
             } else {
                 LoginController.showErrorDialog("Listener is not initialized");
             }

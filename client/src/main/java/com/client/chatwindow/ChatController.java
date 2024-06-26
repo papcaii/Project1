@@ -180,7 +180,6 @@ public class ChatController implements Initializable {
             BorderPane window = fxmlLoader.load();
             groupAddCon = fxmlLoader.getController();
             groupAddCon.setListener(this.listener);
-            groupAddCon.setGroupNow(currentTargetConversationID);
             listener.setGroupAddCon(groupAddCon);
             listener.getGroupRequest("GroupAddController");
             logger.info("set listener to add member to group controller");

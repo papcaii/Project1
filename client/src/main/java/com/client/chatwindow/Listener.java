@@ -308,13 +308,13 @@ public class Listener implements Runnable {
     }
 
     // send request to add people from group
-    public void sendGroupRequest(String userTarget,int groupID) throws IOException {
-    	logger.info("Send request for "+userTarget+" to join group " + groupID);
+    public void sendGroupRequest(String userTarget,Conversation group) throws IOException {
+    	logger.info("Send request for "+userTarget+" to join group " + group.getConversationID());
     	try {
             Message validateMessage = new Message();
             validateMessage.setName(userTarget);
-            //validateMessage.setMsg(group.getConversationName());
-            validateMessage.setTargetConversationID(groupID);
+            validateMessage.setMsg(group.getConversationName());
+            validateMessage.setTargetConversationID(group.getConversationID());
             validateMessage.setType(MessageType.C_SEND_GROUP_REQUEST);
             this.output.writeObject(validateMessage);
             this.output.flush();

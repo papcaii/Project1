@@ -279,7 +279,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already request
-                            sendNotificationToUser(this.output, targetName + " already in group "+inputMsg.getTargetConversationID());
+                            sendNotificationToUser(this.output, targetName + " already in group "+inputMsg.getMsg());
                             return false;
                         }
                     }
@@ -296,7 +296,7 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Group request sent from user {} to user {}", userAdmin.getID(), userTarget.getID());
-                        sendNotificationToUser(this.output, "Successfully sent a request join group "+inputMsg.getTargetConversationID()+" to user " + targetName);
+                        sendNotificationToUser(this.output, "Successfully sent a request join group "+inputMsg.getMsg()+" to user " + targetName);
                         return false;
                     } else {
                         logger.error("Failed to sent friend request from user {} to user {}", userAdmin.getID(), userTarget.getID());
