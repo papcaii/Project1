@@ -890,7 +890,7 @@ public class Server {
                             Conversation request = new Conversation();
                             request.setConversationID(rs.getInt("conversation_id"));
                             request.setConversationName(rs.getString("group_name"));
-                            request.setGroupMaster(names.get(rs.getString("group_admin")));
+                            request.setGroupMaster(userMap.get(rs.getInt("group_admin")));
 
                             // Store the user object in the HashMap with username as the key
                             requestMap.put(groupID, request);

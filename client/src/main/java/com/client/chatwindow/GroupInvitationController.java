@@ -62,6 +62,7 @@ public class GroupInvitationController implements Initializable {
                 if (newRequest != null) {
                     currentGroup = newRequest;
                     logger.info("ListView selection changed to newValue = " + currentGroup.getConversationName());
+                    logger.info("Show the group admin " + currentGroup.getGroupMaster().getName());
                 } else {
                     currentGroup = null;
                     logger.info("ListView selection cleared.");
