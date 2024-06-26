@@ -873,8 +873,8 @@ public class Server {
                 }
 
                 // Get user list and store in a map
-                String query = "SELECT gr.conversation_id, gc.group_name FROM GroupRequest gr "
-                		+ "JOIN GroupChat gc ON GroupChat.conversation_id=GroupRequest.conversation_id "
+                String query = "SELECT GroupRequest.conversation_id, GroupChat.group_name FROM GroupRequest "
+                		+ "JOIN GroupChat ON GroupChat.conversation_id=GroupRequest.conversation_id "
                 		+ "WHERE receiver_id=?";
                 try (PreparedStatement st = connection.prepareStatement(query)) {
                     st.setInt(1, userID);
