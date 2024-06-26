@@ -1285,8 +1285,8 @@ public class Server {
 
                 // find group conversation
                 String insertConversationSQL = "SELECT conversation_id, GroupChat.group_name, GroupChat.group_admin FROM Conversation "
-                		+ "JOIN ChatMember ON ChatMember.conversation_id=Conversation.conversation_id"
-                		+ "JOIN GroupChat ON GroupChat.conversation_id=ChatMember.conversation_id"
+                		+ "JOIN ChatMember ON ChatMember.conversation_id=Conversation.conversation_id "
+                		+ "JOIN GroupChat ON GroupChat.conversation_id=ChatMember.conversation_id "
                 		+ "WHERE ChatMember.user_id=? and Conversation.is_group=1";
                 try (PreparedStatement st = connection.prepareStatement(insertConversationSQL, Statement.RETURN_GENERATED_KEYS)) {
                     st.setInt(1, userID);
