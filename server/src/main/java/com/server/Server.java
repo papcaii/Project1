@@ -1173,9 +1173,9 @@ public class Server {
         }
         
         private boolean declineGroupRequest(Message message) throws InvalidUserException {
-            User requestUser = names.get(message.getName());
-            int requestID = requestUser.getID();
-            int receiverID = this.user.getID();
+            User sender=names.get(message.getMsg());
+            User receiver=names.get(message.getName());
+            int groupId=message.getTargetConversationID();
 
             try (Connection connection = DatabaseManager.getConnection()) {
                 if (connection == null) {
@@ -1186,13 +1186,13 @@ public class Server {
                 // Delete friend request
                 String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE sender_id=? AND receiver_id=? AND conversation_id=?";
                 try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
-                    st.setInt(1, requestID);
-                    st.setInt(2, receiverID);
-                    st.setInt(3, receiverID);
+                    st.setInt(1, sender.getID());
+                    st.setInt(2, receiver.getID());
+                    st.setInt(3, groupId);
 
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
-                        sendNotificationToUser(this.output, "Successfully delete friend request from " + message.getName());
+                        sendNotificationToUser(this.output, "Successfully decline request to group from " + sender.getName());
                     } else {
                         logger.error("Cant delete friend request or not exist");
                         sendNotificationToUser(this.output, "Fail to delete friend request from " + message.getName());

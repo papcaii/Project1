@@ -434,7 +434,7 @@ public class Listener implements Runnable {
     	Message declineMessage = new Message();
         declineMessage.setName(this.getUsername());
         declineMessage.setTargetConversationID(group.getConversationID());
-        declineMessage.setMsg(group.getConversationName());
+        declineMessage.setMsg(group.getGroupMaster().getName());
         declineMessage.setType(MessageType.C_DECLINE_GROUP_REQUEST);
         this.output.writeObject(declineMessage);
         this.output.flush();
