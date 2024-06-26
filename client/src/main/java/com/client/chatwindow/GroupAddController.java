@@ -47,15 +47,23 @@ public class GroupAddController implements Initializable {
 
     private String currentTargetName;
     
-    private Conversation groupNow;
+    private int groupNow;
 
-    Logger logger = LoggerFactory.getLogger(FriendRequestController.class);
+    Logger logger = LoggerFactory.getLogger(GroupAddController.class);
 
     public GroupAddController() {
         instance = this;
     }
 
-    public static GroupAddController getInstance() {
+    public int getGroupNow() {
+		return groupNow;
+	}
+
+	public void setGroupNow(int groupNow) {
+		this.groupNow = groupNow;
+	}
+
+	public static GroupAddController getInstance() {
         return instance;
     }
 
@@ -134,7 +142,7 @@ public class GroupAddController implements Initializable {
         }
 
         if (listener != null) {
-            listener.createFriendShip(currentTargetName);
+            listener.joinToGroup(currentTargetName, groupNow);
         } else {
             LoginController.showErrorDialog("Listener is not initialized");
         }

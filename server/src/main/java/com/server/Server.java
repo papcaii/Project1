@@ -260,7 +260,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already send request
-                            sendErrorToUser(this.output, "You have sent "+targetName+" a request to join group "+inputMsg.getMsg());
+                            sendErrorToUser(this.output, "You have sent "+targetName+" a request to join group "+inputMsg.getTargetConversationID());
                             return false;
                         }
                     }
@@ -275,7 +275,7 @@ public class Server {
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already request
-                            sendNotificationToUser(this.output, targetName + " already in group "+inputMsg.getMsg());
+                            sendNotificationToUser(this.output, targetName + " already in group "+inputMsg.getTargetConversationID());
                             return false;
                         }
                     }
@@ -292,7 +292,7 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Group request sent from user {} to user {}", userAdmin.getID(), userTarget.getID());
-                        sendNotificationToUser(this.output, "Successfully sent a request join group "+inputMsg.getMsg()+" to user " + targetName);
+                        sendNotificationToUser(this.output, "Successfully sent a request join group "+inputMsg.getTargetConversationID()+" to user " + targetName);
                         return false;
                     } else {
                         logger.error("Failed to sent friend request from user {} to user {}", userAdmin.getID(), userTarget.getID());
@@ -1011,7 +1011,7 @@ public class Server {
                 // Delete group request
                 String deleteFriendRequestQuery = "DELETE FROM GroupRequest WHERE group_id=? AND receiver_id=?";
                 try (PreparedStatement st = connection.prepareStatement(deleteFriendRequestQuery)) {
-                    st.setInt(1, message.getTargetConversationID());
+                    st.setInt(1, conversationId);
                     st.setInt(2, user.getID());
 
                     int affectedRows = st.executeUpdate();
@@ -1032,10 +1032,10 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("You has been join group " + message.getMsg());
-                        sendNotificationToUser(this.output, "You has been join group " + message.getMsg());
+                        sendNotificationToUser(this.output, "You has been join group " + conversationId);
                         return true;
                     } else {
-                        logger.error("Failed to join grop {}", message.getMsg());
+                        logger.error("Failed to join grop " + conversationId);
                         return false;
                     }
                 }

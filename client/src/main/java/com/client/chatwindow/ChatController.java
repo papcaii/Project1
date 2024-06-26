@@ -178,6 +178,7 @@ public class ChatController implements Initializable {
             BorderPane window = fxmlLoader.load();
             groupAddCon = fxmlLoader.getController();
             groupAddCon.setListener(this.listener);
+            groupAddCon.setGroupNow(currentTargetConversationID);
             listener.setGroupAddCon(groupAddCon);
             listener.getGroupRequest();
             logger.info("set listener to add member to group controller");
@@ -384,6 +385,7 @@ public class ChatController implements Initializable {
                 Button addMemberButton = new Button("Add Member");
                 addMemberButton.setMaxWidth(Double.MAX_VALUE);
                 addMemberButton.setOnAction(event -> addGroupMemberHandler());
+                
                 Button outGroupButton = new Button("Out Group");
                 outGroupButton.setMaxWidth(Double.MAX_VALUE);
                 outGroupButton.setOnAction(event -> outGroupHandler());

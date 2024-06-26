@@ -55,8 +55,8 @@ public class Listener implements Runnable {
         this.chatCon = chatCon;
     }
 
-    public void setGroupAddCon(GroupAddController groupChatCon) {
-		this.groupAddCon = groupChatCon;
+	public void setGroupAddCon(GroupAddController groupAddCon) {
+		this.groupAddCon = groupAddCon;
 	}
 
 	public void setAddFriendController(AddFriendController addFriendCon) {
@@ -283,13 +283,13 @@ public class Listener implements Runnable {
     }
 
     // send request to add people from group
-    public void sendGroupRequest(String userTarget,Conversation group) throws IOException {
-    	logger.info("Send request for "+userTarget+" to join group " + group.getConversationName());
+    public void sendGroupRequest(String userTarget,int groupID) throws IOException {
+    	logger.info("Send request for "+userTarget+" to join group " + groupID);
     	try {
             Message validateMessage = new Message();
             validateMessage.setName(userTarget);
-            validateMessage.setMsg(group.getConversationName());
-            validateMessage.setTargetConversationID(group.getConversationID());
+            //validateMessage.setMsg(group.getConversationName());
+            validateMessage.setTargetConversationID(groupID);
             validateMessage.setType(MessageType.C_SEND_GROUP_REQUEST);
             this.output.writeObject(validateMessage);
             this.output.flush();
@@ -462,12 +462,12 @@ public class Listener implements Runnable {
     }
     
     // user join group
-    public void joinToGroup(String userName, Conversation group) throws IOException {
+    public void joinToGroup(String userName, int groupID) throws IOException {
     	try {
             Message msg = new Message();
             msg.setName(username);
-            msg.setTargetConversationID(group.getConversationID());
-            msg.setMsg(group.getConversationName());
+            msg.setTargetConversationID(groupID);
+            //msg.setMsg(group.getConversationName());
             msg.setType(MessageType.C_ADD_PEOPLE_TO_GROUP);
             this.output.writeObject(msg);
             this.output.flush();
