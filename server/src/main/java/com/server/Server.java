@@ -877,7 +877,7 @@ public class Server {
                 }
 
                 // Get user list and store in a map
-                String query = "SELECT GroupRequest.conversation_id, GroupChat.group_name FROM GroupRequest "
+                String query = "SELECT GroupRequest.conversation_id, GroupChat.group_name, GroupChat.group_admin FROM GroupRequest "
                 		+ "JOIN GroupChat ON GroupChat.conversation_id=GroupRequest.conversation_id "
                 		+ "WHERE receiver_id=?";
                 try (PreparedStatement st = connection.prepareStatement(query)) {
@@ -890,6 +890,7 @@ public class Server {
                             Conversation request = new Conversation();
                             request.setConversationID(rs.getInt("conversation_id"));
                             request.setConversationName(rs.getString("group_name"));
+                            request.setGroupMaster(names.get(rs.getString("group_admin")));
 
                             // Store the user object in the HashMap with username as the key
                             requestMap.put(groupID, request);

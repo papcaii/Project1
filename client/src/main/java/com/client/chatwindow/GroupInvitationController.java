@@ -143,7 +143,7 @@ public class GroupInvitationController implements Initializable {
         }
 
         // Prompt user for confirmation
-        if (!LoginController.showConfirmationDialog("Do you want to decline invitation to group "+ currentGroup.getConversationName() +" from "+currentGroup.getGroupMaster()+"?")) {
+        if (!LoginController.showConfirmationDialog("Do you want to decline invitation to group "+ currentGroup.getConversationName() +" from "+currentGroup.getGroupMaster().getName()+"?")) {
             return;
         }
 
