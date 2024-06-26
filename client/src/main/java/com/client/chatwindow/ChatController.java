@@ -130,26 +130,26 @@ public class ChatController implements Initializable {
         }
     }
 
-    public void groupAddHandler() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupAddView.fxml"));
-            BorderPane window = fxmlLoader.load();
-            groupAddCon = fxmlLoader.getController();
-            groupAddCon.setListener(this.listener);
-
-            Stage stage = (Stage) messageBox.getScene().getWindow();
-            Scene scene = new Scene(window);
-            stage.setScene(scene);
-
-            // Set stage size to match scene size
-            stage.setWidth(window.getPrefWidth());
-            stage.setHeight(window.getPrefHeight());
-            stage.centerOnScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Consider logging the error or showing an alert to the user
-        }
-    }
+//    public void groupAddHandler() {
+//        try {
+//            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupAddView.fxml"));
+//            BorderPane window = fxmlLoader.load();
+//            groupAddCon = fxmlLoader.getController();
+//            groupAddCon.setListener(this.listener);
+//
+//            Stage stage = (Stage) messageBox.getScene().getWindow();
+//            Scene scene = new Scene(window);
+//            stage.setScene(scene);
+//
+//            // Set stage size to match scene size
+//            stage.setWidth(window.getPrefWidth());
+//            stage.setHeight(window.getPrefHeight());
+//            stage.centerOnScreen();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            // Consider logging the error or showing an alert to the user
+//        }
+//    }
     
     public void groupHandler() {
         try {
