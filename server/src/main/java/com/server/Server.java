@@ -538,6 +538,9 @@ public class Server {
                     Message msg = new Message();
                     msg.setType(MessageType.S_SHOW_CONVERSATION_CHAT);
                     msg.setContext(context);
+                    for (int i=0;i<context.size();i++) {
+                    	System.out.println(context.get(i).getMsg());
+                    }
                     sendMessageToTarget(this.output, msg);
 
                     return ;
