@@ -151,9 +151,9 @@ public class ChatController implements Initializable {
 //        }
 //    }
     
-    public void groupHandler() {
+    public void groupInvitationHandler() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupView.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupInvitationView.fxml"));
             BorderPane window = fxmlLoader.load();
             groupInvitationCon = fxmlLoader.getController();
             groupInvitationCon.setListener(this.listener);
@@ -176,12 +176,10 @@ public class ChatController implements Initializable {
 
     public void addGroupMemberHandler() {
     	try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupAddView.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/views/GroupAddMemberView.fxml"));
             BorderPane window = fxmlLoader.load();
             groupAddCon = fxmlLoader.getController();
             groupAddCon.setListener(this.listener);
-            listener.setGroupAddCon(groupAddCon);
-            listener.getGroupRequest("GroupAddController");
             logger.info("set listener to add member to group controller");
 
             Stage stage = (Stage) messageBox.getScene().getWindow();
@@ -347,7 +345,7 @@ public class ChatController implements Initializable {
     }
 
     public void showConversationProperty(Message msg) {
-        logger.info("showConversationProperty() method enter");
+        // logger.info("showConversationProperty() method enter");
 
         Image image = userImageView.getImage();
         ImageView profileImage = new ImageView(image);
