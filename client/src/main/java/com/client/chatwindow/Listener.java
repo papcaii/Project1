@@ -32,7 +32,7 @@ public class Listener implements Runnable {
     public ChatController chatCon;
     public AddFriendController addFriendCon;
     public GroupInvitationController groupInvitationCon;
-    public GroupAddController groupAddCon;
+    public GroupAddMemberController groupAddCon;
     
     private InputStream is;
     private OutputStream os;
@@ -58,10 +58,6 @@ public class Listener implements Runnable {
 
 	public void setGroupInvitationCon(GroupInvitationController groupInvitationCon) {
 		this.groupInvitationCon = groupInvitationCon;
-	}
-
-	public void setGroupAddCon(GroupAddController groupAddCon) {
-		this.groupAddCon = groupAddCon;
 	}
 
 	public void setAddFriendController(AddFriendController addFriendCon) {
@@ -196,11 +192,15 @@ public class Listener implements Runnable {
 
                         case S_SHOW_CONVERSATION_PROPERTY:
                             chatCon.showConversationProperty(message);
+                            break;
 
                         // load message of a specific conversation
                         case S_SHOW_CONVERSATION_CHAT:
-                        	logger.info("User" + this.username + "get context of conversation from server");
-                        	chatCon.showContextOfConversation(message);
+                        	// logger.info("User" + this.username + "get context of conversation from server");
+                            for (int i=0;i<message.getContext().size();i++) {
+                                System.out.println(message.getContext().get(i).getMsg());
+                            }
+                            chatCon.showContextOfConversation(message);
                         	break;
                         
                         // load conversation group, the values store in userMap
@@ -213,33 +213,20 @@ public class Listener implements Runnable {
                         	
                         // show all request from group 
                         case S_GET_GROUP_REQUEST:
-                        	logger.info("The context of message is " + message.getMsg());
-                        	if (message.getMsg().equals("GroupAddController")) {
-	                        	while (groupAddCon == null) {
-	                                try {
-	                                    logger.info("Waiting for groupAddCon to be initialized...");
-	                                    TimeUnit.SECONDS.sleep(1);
-	                                } catch (InterruptedException e) {
-	                                    Thread.currentThread().interrupt(); // Restore interrupted status
-	                                    logger.error("Thread was interrupted", e);
-	                                }
-	                            }
-	                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
-	                            groupAddCon.setUserListView(requestGroupList);
-                        	}
-                        	else {
-                        		while (groupInvitationCon == null) {
-	                                try {
-	                                    logger.info("Waiting for groupInvitationCon to be initialized...");
-	                                    TimeUnit.SECONDS.sleep(1);
-	                                } catch (InterruptedException e) {
-	                                    Thread.currentThread().interrupt(); // Restore interrupted status
-	                                    logger.error("Thread was interrupted", e);
-	                                }
-	                            }
-	                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
-	                            groupInvitationCon.setUserListView(requestGroupList);
-                        	}
+                        	// logger.info("The context of message is " + message.getMsg());
+
+                    		while (groupInvitationCon == null) {
+                                try {
+                                    logger.info("Waiting for groupInvitationCon to be initialized...");
+                                    TimeUnit.SECONDS.sleep(1);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt(); // Restore interrupted status
+                                    logger.error("Thread was interrupted", e);
+                                }
+                            }
+                            ArrayList<Conversation> requestGroupList = new ArrayList<>(message.getConversationMap().values());
+                            groupInvitationCon.setUserListView(requestGroupList);
+
                         	break;
                         
                         // add people to  group

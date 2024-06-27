@@ -162,7 +162,7 @@ public class Server {
                                 break;
 
                             case C_GET_FRIEND_REQUEST:
-                                getUserFriendRequest(inputmsg);
+                                getUserFriendRequest(inputmsg.getName());
                                 break;
 
                             case C_CONVERSATION_CHAT:
@@ -183,14 +183,17 @@ public class Server {
 
                             case C_CREATE_FRIEND_SHIP:
                                 createFriendship(inputmsg);
+                                getUserFriendRequest(this.user.getName());
                                 break;
 
                             case C_DECLINE_FRIEND_REQUEST:
                                 declineFriendRequest(inputmsg);
+                                getUserFriendRequest(this.user.getName());
                                 break;
                             
                             case C_DECLINE_GROUP_REQUEST:
                             	declineGroupRequest(inputmsg);
+                                getUserGroupRequest(this.user.getName());
                                 break;
 
                             case C_CREATE_GROUP:
@@ -207,11 +210,14 @@ public class Server {
                             	break;
                             	
                             case C_GET_GROUP_REQUEST:
-                            	getUserGroupRequest(inputmsg);
+                            	getUserGroupRequest(inputmsg.getName());
                             	break;
                             
+                            // when user accept group request
                             case C_ADD_PEOPLE_TO_GROUP:
                             	addUserToGroup(inputmsg);
+                                // update receiver list
+                                getUserGroupRequest(this.user.getName());
                             	break;
                             
                             case C_REMOVE_FROM_GROUP:
@@ -257,14 +263,14 @@ public class Server {
                 // Check if there are request to targetUser invite group
                 String checkRequestQuery = "SELECT * FROM GroupRequest WHERE receiver_id=? AND sender_id=? AND conversation_id=?";
                 try (PreparedStatement st = connection.prepareStatement(checkRequestQuery)) {
-                    st.setInt(1, userAdmin.getID());
-                    st.setInt(2, userTarget.getID());
+                    st.setInt(1, userTarget.getID());
+                    st.setInt(2, userAdmin.getID());
                     st.setInt(3, inputMsg.getTargetConversationID());
 
                     try (ResultSet rs = st.executeQuery()) {
                         if (rs.next()) {
                             // Already send request
-                            sendErrorToUser(this.output, "You have sent "+targetName+" a request to join group "+inputMsg.getTargetConversationID());
+                            sendErrorToUser(this.output, "You have already sent "+targetName+" a request to join this group");
                             return false;
                         }
                     }
@@ -865,8 +871,8 @@ public class Server {
             }
         }
 
-        private void getUserGroupRequest(Message inputMsg) throws IOException{
-            String userName = inputMsg.getName();
+        private void getUserGroupRequest(String userName) throws IOException{
+            // String userName = inputMsg.getName();
             int userID = names.get(userName).getID();
             int groupID;
 
@@ -894,6 +900,7 @@ public class Server {
                             request.setConversationID(rs.getInt("conversation_id"));
                             request.setConversationName(rs.getString("group_name"));
                             request.setGroupMaster(userMap.get(rs.getInt("group_admin")));
+                            request.setGroup(true);
 
                             // Store the user object in the HashMap with username as the key
                             requestMap.put(groupID, request);
@@ -905,8 +912,7 @@ public class Server {
                 Message msg = new Message();
                 msg.setType(MessageType.S_GET_GROUP_REQUEST);
                 msg.setConversationMap(requestMap);
-                msg.setMsg(inputMsg.getMsg());
-                logger.info("the context of message in server is " + inputMsg.getMsg());
+                // logger.info("the context of message in server is " + inputMsg.getMsg());
                 sendMessageToTarget(output, msg);
 
             } catch (SQLException e) {
@@ -915,8 +921,8 @@ public class Server {
             }
         }
         
-        private void getUserFriendRequest(Message inputMsg) throws IOException{
-            String userName = inputMsg.getName();
+        private void getUserFriendRequest(String userName) throws IOException{
+            // String userName = inputMsg.getName();
             int userID = names.get(userName).getID();
             int senderID;
             User senderUser;
@@ -942,6 +948,7 @@ public class Server {
                             Conversation request = new Conversation();
                             request.setConversationID(senderID);
                             request.setConversationName(senderUser.getName());
+                            request.setGroup(false);
 
                             // Store the user object in the HashMap with username as the key
                             requestMap.put(senderID, request);
@@ -961,7 +968,6 @@ public class Server {
             }
         }
 
-        
         private void removeUserFromGroup(Message message) throws IOException, InvalidUserException {
             User user = names.get(message.getName());
             int groupId=message.getTargetConversationID();
@@ -1118,10 +1124,6 @@ public class Server {
                     int affectedRows = st.executeUpdate();
                     if (affectedRows > 0) {
                         logger.info("Friendship sent between user {} to user {} has been made", requestID, receiverID);
-                        // Message msg = new Message();
-                        // msg.setType(MessageType.S_CREATE_FRIEND_SHIP);
-                        // msg.setMsg("You and " + message.getName() + " are friend now");
-                        // sendMessageToTarget(output, msg);
                         sendNotificationToUser(this.output, "You and " + message.getName() + " are friend now");
                         return true;
                     } else {
@@ -1373,7 +1375,7 @@ public class Server {
                             conversation.setConversationID(rs.getInt("conversation_id"));
                             conversation.setConversationName(rs.getString("group_name"));
                             conversation.setUserStatus(Status.ONLINE);
-                            conversation.setGroup(true);
+                            conversation.setGroup(false);
 
                             logger.info("Loaded a conversation with id " + rs.getInt("conversation_id"));
                             userConversationMap.put(rs.getInt("conversation_id"), conversation);

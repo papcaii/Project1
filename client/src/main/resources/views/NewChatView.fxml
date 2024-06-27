@@ -39,7 +39,7 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Button mnemonicParsing="false" onAction="#groupInvitationHandler" prefHeight="39.0" prefWidth="217.0" text="Create Group">
+            <Button mnemonicParsing="false" onAction="#groupInvitationHandler" prefHeight="39.0" prefWidth="217.0" text="Group Manager">
                <graphic>
                   <ImageView fitHeight="31.0" fitWidth="41.0" pickOnBounds="true" preserveRatio="true">
                      <image>

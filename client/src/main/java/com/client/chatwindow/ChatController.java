@@ -64,13 +64,14 @@ public class ChatController implements Initializable {
     private double yOffset;
     
     private Status currentStatus = Status.OFFLINE;
+    private Conversation currentTargetConversation = null;
     private int currentTargetConversationID = -1; 
     public Listener listener;
 
     private ChatController instance;
     private AddFriendController addFriendCon;
     private GroupInvitationController groupInvitationCon;
-    private GroupAddController groupAddCon;
+    private GroupAddMemberController groupAddCon;
     
     Logger logger = LoggerFactory.getLogger(ChatController.class);
 
@@ -180,6 +181,7 @@ public class ChatController implements Initializable {
             BorderPane window = fxmlLoader.load();
             groupAddCon = fxmlLoader.getController();
             groupAddCon.setListener(this.listener);
+            groupAddCon.setCurrentGroup(currentTargetConversation);
             logger.info("set listener to add member to group controller");
 
             Stage stage = (Stage) messageBox.getScene().getWindow();
@@ -231,84 +233,41 @@ public class ChatController implements Initializable {
 
     // When a new message add to chat
     public synchronized void addMessageToChatView(Message msg) {
+        // logger.info("addMessageToChatView() method ENTER");
 
-        logger.info("addMessageToChatView() method ENTER");
+        Platform.runLater(() -> {
+            // Load the profile image of the sender
+            Image image = userImageView.getImage();
+            ImageView profileImage = new ImageView(image);
+            profileImage.setFitHeight(32);
+            profileImage.setFitWidth(32);
 
-        // Task to handle messages from other users
-        Task<HBox> othersMessages = new Task<HBox>() {
-            @Override
-            public HBox call() throws Exception {
-                // Load the profile image of the sender
-                Image image = userImageView.getImage();
-                ImageView profileImage = new ImageView(image);
-                profileImage.setFitHeight(32);
-                profileImage.setFitWidth(32);
-
-                // Create a BubbledLabel for the message text
-                BubbledLabel bl6 = new BubbledLabel();
-                bl6.setText(msg.getName() + ": " + msg.getMsg());
-                bl6.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-
-                // Create an HBox to contain the profile image and message bubble
-                HBox x = new HBox();
-                bl6.setBubbleSpec(BubbleSpec.FACE_LEFT_CENTER);
-                x.getChildren().addAll(profileImage, bl6);
-
-                return x;
-            }
-        };
-
-        // Task to handle messages from the user
-        Task<HBox> yourMessages = new Task<HBox>() {
-            @Override
-            public HBox call() throws Exception {
-                Image image = userImageView.getImage();
-                ImageView profileImage = new ImageView(image);
-                profileImage.setFitHeight(32);
-                profileImage.setFitWidth(32);
-
-                BubbledLabel bl6 = new BubbledLabel();
+            // Create a BubbledLabel for the message text
+            BubbledLabel bl6 = new BubbledLabel();
+            if (msg.getName().equals(usernameLabel.getText())) {
                 bl6.setText(msg.getMsg());
                 bl6.setBackground(new Background(new BackgroundFill(Color.LIGHTGREEN, null, null)));
+                bl6.setBubbleSpec(BubbleSpec.FACE_RIGHT_CENTER);
+            } else {
+                bl6.setText(msg.getName() + ": " + msg.getMsg());
+                bl6.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+                bl6.setBubbleSpec(BubbleSpec.FACE_LEFT_CENTER);
+            }
 
-                HBox x = new HBox();
+            // Create an HBox to contain the profile image and message bubble
+            HBox x = new HBox();
+            if (msg.getName().equals(usernameLabel.getText())) {
                 x.setMaxWidth(chatPane.getWidth() - 20);
                 x.setAlignment(Pos.TOP_RIGHT);
-                bl6.setBubbleSpec(BubbleSpec.FACE_RIGHT_CENTER);
                 x.getChildren().addAll(bl6, profileImage);
-
-                return x;
+            } else {
+                x.getChildren().addAll(profileImage, bl6);
             }
-        };
 
-        // Set onSucceeded event handler for othersMessages task
-        othersMessages.setOnSucceeded(event -> {
-            logger.info("Adding message from another user");
-            HBox messageBox = othersMessages.getValue();
-            Platform.runLater(() -> chatPane.getItems().add(messageBox));
+            chatPane.getItems().add(x);
         });
 
-        // Set onSucceeded event handler for yourMessages task
-        yourMessages.setOnSucceeded(event -> {
-            logger.info("Adding message from self");
-            HBox messageBox = yourMessages.getValue();
-            Platform.runLater(() -> chatPane.getItems().add(messageBox));
-        });
-
-        // Set onFailed event handler for both tasks to log errors
-        othersMessages.setOnFailed(event -> logger.error("Failed to load other user's message", othersMessages.getException()));
-        yourMessages.setOnFailed(event -> logger.error("Failed to load user's message", yourMessages.getException()));
-
-        // Determine if the message is from the user or another user and start the corresponding task
-        if (msg.getName().equals(usernameLabel.getText())) {
-            Thread t2 = new Thread(yourMessages);
-            t2.setDaemon(true);
-            t2.start();
-        } else {
-            Thread t = new Thread(othersMessages);
-            t.setDaemon(true);
-            t.start();
-        }
+        // logger.info("addMessageToChatView() method EXIT");
     }
     
     public void setConversationListView(Message msg) {
@@ -409,6 +368,7 @@ public class ChatController implements Initializable {
             // add message to it
             if (msg.getContext() != null) {
                 for (Message mes : msg.getContext()) {
+                    // System.out.println(mes.getMsg());
                     addMessageToChatView(mes);
                 }
             }
@@ -452,6 +412,7 @@ public class ChatController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Conversation> observable, Conversation oldRequest, Conversation newRequest) {
                 if (newRequest != null) {
+                    currentTargetConversation = newRequest;
                     currentTargetConversationID = newRequest.getConversationID();
                     //this.listener.getMessageFromConversation(currentTargetConversationID);
                     logger.info("ListView selection changed to newValue = " + currentTargetConversationID);
