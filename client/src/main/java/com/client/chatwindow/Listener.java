@@ -191,7 +191,15 @@ public class Listener implements Runnable {
                             break;
 
                         case S_SHOW_CONVERSATION_PROPERTY:
-                            chatCon.showConversationProperty(message);
+                            if (chatCon != null) {
+                                chatCon.showConversationProperty(message);
+                            } else {
+                                // Handle the case where chatCon is null
+                                // Example: Log an error or throw an exception
+                                logger.error("chatCon is null when trying to show conversation property");
+                                // Alternatively, throw an exception to signal the issue
+                                throw new IllegalStateException("chatCon is not initialized");
+                            }
                             break;
 
                         // load message of a specific conversation

@@ -133,4 +133,4 @@ JavaFx.iml
 /client/client.iml
 
 # Credentials file 
-./server/src/main/resources/config.properties
+/server/src/main/resources/config.properties
