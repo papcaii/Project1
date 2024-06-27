@@ -33,7 +33,10 @@ import java.sql.SQLException;
 
 public class Server {
 
+    // define listening port on localhost
     private static final int PORT = 9001;
+
+    // define structure for storing data
     private static final HashMap<String, User> names = new HashMap<>();
     private static final HashMap<Integer, User> userMap = new HashMap<>();
     private static final HashMap<Integer, User> onlineUserMap = new HashMap<>();
@@ -41,24 +44,51 @@ public class Server {
     private static ArrayList<User> users = new ArrayList<>();               // List of user instance
     public static Logger logger = LoggerFactory.getLogger(Server.class);
 
-    public static void main(String[] args) throws Exception {
+
+
+    public static void main(String[] args) {
         logger.info("Starting the chat server...");
 
         // Attempt to establish a connection to the database
-        if (testDatabaseConnection()) {
-            logger.info("Database connection established successfully.");
-        } else {
-            logger.error("Failed to connect to the database. Exiting...");
+        try {
+            if (testDatabaseConnection()) {
+                logger.info("Database connection established successfully.");
+            } else {
+                logger.error("Failed to connect to the database. Exiting...");
+                return;
+            }
+        } catch (Exception e) {
+            logger.error("An error occurred while testing the database connection: " + e.getMessage(), e);
             return;
         }
 
         // Start the server only if the database connection is successful
         try (ServerSocket listener = new ServerSocket(PORT)) {
-            logger.info("The chat server is running.");
-            while (true) {
-                new ClientHandler(listener.accept()).start();
+            logger.info("The chat server is running on port {}", PORT);
+
+            // Shutdown hook to handle graceful shutdown
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                logger.info("Shutting down the server...");
+                running = false;
+                try {
+                    listener.close();
+                } catch (IOException e) {
+                    logger.error("Error while closing the server socket: " + e.getMessage(), e);
+                }
+            }));
+
+            while (running) {
+                try {
+                    new ClientHandler(listener.accept()).start();
+                } catch (IOException e) {
+                    if (running) {
+                        logger.error("An error occurred while accepting a client connection: " + e.getMessage(), e);
+                    } else {
+                        logger.info("Server stopped accepting new connections.");
+                    }
+                }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("An error occurred while running the server: " + e.getMessage(), e);
         }
     }
@@ -921,7 +951,7 @@ public class Server {
             }
         }
         
-        private void getUserFriendRequest(String userName) throws IOException{
+        private void getUserFriendRequest(String userName) throws IOException, NullPointerException {
             // String userName = inputMsg.getName();
             int userID = names.get(userName).getID();
             int senderID;

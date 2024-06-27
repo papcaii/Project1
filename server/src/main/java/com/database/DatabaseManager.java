@@ -1,15 +1,34 @@
 package com.database;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import java.util.Properties;
+
 import com.server.Server;
 
 public class DatabaseManager {
-   private static final String DATABASE_URL = "jdbc:mysql://0.0.0.0:3307/chat-app";
-   private static final String DATABASE_USER_NAME = "root";
-   private static final String DATABASE_PASSWORD = "root";
+   private static final Properties properties = new Properties();
+
+   static {
+     try (InputStream input = DatabaseManager.class.getClassLoader().getResourceAsStream("config.properties")) {
+         if (input == null) {
+             throw new RuntimeException("Sorry, unable to find config.properties");
+         }
+         properties.load(input);
+     } catch (IOException e) {
+         e.printStackTrace();
+         // handle the error
+     }
+   }
+
+   private static final String DATABASE_URL = properties.getProperty("DATABASE_URL");
+   private static final String DATABASE_USER_NAME = properties.getProperty("DATABASE_USER_NAME");
+   private static final String DATABASE_PASSWORD = properties.getProperty("DATABASE_PASSWORD");
 
    public static Connection getConnection() {
       try {
