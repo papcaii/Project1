@@ -48,7 +48,7 @@ docker-compose up -d
 ### Configuration Credentials
 1. Copy the sample configuration file:
     ```sh
-    cp src/main/resources/config.sample.properties src/main/resources/config.properties
+    cp ./server/src/main/resources/config.sample.properties ./server/src/main/resources/config.properties
     ```
 
 2. Update the `config.properties` file with your database details:
