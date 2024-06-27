@@ -60,12 +60,11 @@ docker-compose up -d
 - Replace `your-username` and `your-password` with the value you initialize in your `docker-comse.yml`
 
 ### Make your chat app public to network
-**Expose the Port with Ngrok**:
-    - Install Ngrok from [here](https://ngrok.com/download).
-    - Run the following command to expose the server port:
-    ```bash
-    ngrok tcp 9001
-    ```
+- Install Ngrok from [here](https://ngrok.com/download).  
+- Run the following command to expose the server port:  
+```bash
+ngrok tcp 9001
+```
 
 ### Running the Application
 
