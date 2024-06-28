@@ -44,7 +44,7 @@ public class Server {
     private static ArrayList<User> users = new ArrayList<>();               // List of user instance
     public static Logger logger = LoggerFactory.getLogger(Server.class);
 
-
+    public static boolean running = true;
 
     public static void main(String[] args) {
         logger.info("Starting the chat server...");
@@ -1027,7 +1027,7 @@ public class Server {
             } 
         }
         
-        // 
+        // when user accept group request
         private boolean addUserToGroup(Message message) throws InvalidUserException {
             User user = names.get(message.getName());
             int groupId=message.getTargetConversationID();
@@ -1037,6 +1037,22 @@ public class Server {
                 if (connection == null) {
                     logger.error("Cannot connect to database!");
                     return false;
+                }
+
+                // Check if this user is your friend
+                String checkFriendshipQuery = "SELECT * FROM Friendship WHERE user1_id=? AND user2_id=?";
+                try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
+                    st.setInt(1, Math.min(requestID, receiverID));
+                    st.setInt(2, Math.max(requestID, receiverID));
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (!rs.next()) {
+                            // Already friends
+                            logger.info("Not friend");
+                            sendErrorToUser(this.output, "You and this user are not friend");
+                            return false;
+                        }
+                    }
                 }
 
                 // Check if user already in group
@@ -1070,9 +1086,9 @@ public class Server {
                     }
                 }           
 
-                // Make friendship
-                String insertFriendshipQuery = "INSERT INTO ChatMember (conversation_id, user_id) VALUES (?, ?)";
-                try (PreparedStatement st = connection.prepareStatement(insertFriendshipQuery)) {
+                // Add ChatMember
+                String addMemeberQuery = "INSERT INTO ChatMember (conversation_id, user_id) VALUES (?, ?)";
+                try (PreparedStatement st = connection.prepareStatement(addMemeberQuery)) {
                     st.setInt(1, groupId);
                     st.setInt(2, user.getID());
 
@@ -1097,7 +1113,17 @@ public class Server {
         }
         
         private boolean createFriendship(Message message) throws InvalidUserException {
+            
+            // Retrieve the user who made the request
             User requestUser = names.get(message.getName());
+            
+            // Check if the user exists in the map
+            if (requestUser == null) {
+                logger.error("User not found: " + message.getName());
+                sendErrorToUser(this.output, "User not found");
+                return false;
+            }
+
             int requestID = requestUser.getID();
             int receiverID = this.user.getID();
 
