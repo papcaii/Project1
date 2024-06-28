@@ -1,7 +1,7 @@
 package com.client.login;
 
 import com.client.chatwindow.ChatController;
-import com.client.chatwindow.Listener;
+import com.client.Listener;
 import com.client.util.ResizeHelper;
 import com.client.register.RegisterController;
 

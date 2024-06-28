@@ -1,12 +1,12 @@
 package com.client.chatwindow;
 
-import com.client.chatwindow.Listener;
+import com.client.Listener;
 import com.client.login.MainLauncher;
 import com.client.login.LoginController;
-import com.client.chatwindow.ChatController;
-import com.messages.User;
-import com.messages.Conversation;
+import com.model.User;
+import com.model.Conversation;
 import com.client.util.ResizeHelper;
+import com.client.util.CellRenderer;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

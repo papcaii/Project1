@@ -1,9 +1,10 @@
 package com.client.register;
 
-import com.client.chatwindow.Listener;
+import com.client.Listener;
 import com.client.login.MainLauncher;
-import com.client.chatwindow.ChatController;
 import com.client.login.LoginController;
+
+import com.client.chatwindow.ChatController;
 import com.client.util.ResizeHelper;
 
 import javafx.animation.KeyFrame;

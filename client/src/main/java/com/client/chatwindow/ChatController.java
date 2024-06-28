@@ -2,16 +2,19 @@ package com.client.chatwindow;
 
 import java.io.*; 
 
+import com.client.Listener;
 import com.client.login.MainLauncher;
 import com.client.login.LoginController;
-import com.messages.Message;
-import com.messages.Conversation;
-import com.messages.MessageType;
-import com.messages.User;
-import com.messages.Status;
-import com.messages.User;
-import com.messages.bubble.BubbleSpec;
-import com.messages.bubble.BubbledLabel;
+import com.model.Message;
+import com.model.Conversation;
+import com.model.MessageType;
+import com.model.User;
+import com.model.Status;
+import com.model.User;
+import com.model.bubble.BubbleSpec;
+import com.model.bubble.BubbledLabel;
+import com.client.util.CellRenderer;
+import com.client.util.ResizeHelper;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;

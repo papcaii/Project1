@@ -1,11 +1,11 @@
-package com.client.chatwindow;
+package com.client;
 
 import com.client.login.LoginController;
-
-import com.messages.Conversation;
-import com.messages.Message;
-import com.messages.MessageType;
-import com.messages.Status;
+import com.client.chatwindow.*;
+import com.model.Conversation;
+import com.model.Message;
+import com.model.MessageType;
+import com.model.Status;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;

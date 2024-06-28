@@ -1,4 +1,4 @@
-package com.messages;
+package com.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;

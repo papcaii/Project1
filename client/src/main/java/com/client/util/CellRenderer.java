@@ -1,7 +1,7 @@
-package com.client.chatwindow;
+package com.client.util;
 
-import com.messages.User;
-import com.messages.Conversation;
+import com.model.User;
+import com.model.Conversation;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.ListCell;
@@ -53,7 +53,7 @@ class CellRenderer implements Callback<ListView<User>,ListCell<User>>{
 /*
  * A Class for Rendering conversation images / name on the userlist.
  */
-class CellRenderer implements Callback<ListView<Conversation>,ListCell<Conversation>>{
+public class CellRenderer implements Callback<ListView<Conversation>,ListCell<Conversation>>{
 	@Override
     public ListCell<Conversation> call(ListView<Conversation> p) {
 
