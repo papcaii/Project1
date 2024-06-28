@@ -21,7 +21,6 @@ public class DatabaseManager {
          }
          properties.load(input);
      } catch (IOException e) {
-         e.printStackTrace();
          // handle the error
      }
    }

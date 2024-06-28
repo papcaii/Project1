@@ -81,11 +81,9 @@ public class Server {
                 try {
                     new ClientHandler(listener.accept()).start();
                 } catch (IOException e) {
-                    if (running) {
-                        logger.error("An error occurred while accepting a client connection: " + e.getMessage(), e);
-                    } else {
-                        logger.info("Server stopped accepting new connections.");
-                    }
+
+                    logger.error("An error occurred while accepting a client connection: " + e.getMessage(), e);
+
                 }
             }
         } catch (IOException e) {
@@ -524,7 +522,7 @@ public class Server {
                                         sendMessageToTarget(this.output, msg);
                                     }
                                 } catch (SQLException e) {
-                                    e.printStackTrace();
+                                    sendErrorToUser(this.output, "Getting error with database, please try again");
                                     // Handle SQL exception
                                 }
                             }
@@ -963,6 +961,7 @@ public class Server {
                 if (connection == null) {
                     logger.error("Cannot connect to database!");
                     sendErrorToUser(this.output, "Cannot connect to database");
+                    return false;
                 }
 
                 // Get user list and store in a map
