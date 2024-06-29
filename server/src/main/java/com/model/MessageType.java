@@ -1,4 +1,4 @@
-package com.messages;
+package com.model;
 
 public enum MessageType {
     S_LOGIN,

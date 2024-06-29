@@ -2,11 +2,11 @@ package com.server;
 
 import com.database.DatabaseManager;
 import com.exception.InvalidUserException;
-import com.messages.Message;
-import com.messages.Conversation;
-import com.messages.MessageType;
-import com.messages.Status;
-import com.messages.User;
+import com.model.Message;
+import com.model.Conversation;
+import com.model.MessageType;
+import com.model.Status;
+import com.model.User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,9 +81,7 @@ public class Server {
                 try {
                     new ClientHandler(listener.accept()).start();
                 } catch (IOException e) {
-
                     logger.error("An error occurred while accepting a client connection: " + e.getMessage(), e);
-
                 }
             }
         } catch (IOException e) {
@@ -168,7 +166,7 @@ public class Server {
                 while (this.socket.isConnected()) {
                     Message inputmsg = (Message) this.input.readObject();
                     if (inputmsg != null) {
-                        logger.info(inputmsg.getType() + " - " + inputmsg.getName() + ": " + inputmsg.getMsg());
+                        logger.info("Get " + inputmsg.getType());
                         switch (inputmsg.getType()) {
                             case C_LOGIN:
                                 if (validateClient(inputmsg)) {
@@ -259,7 +257,7 @@ public class Server {
             } catch (InvalidUserException duplicateException){
                 logger.error("Duplicate Username: " + name);
             } catch (Exception e){
-                logger.error("User" + name + "disconnected");
+                e.printStackTrace();
             } finally {
                 closeConnections();
             }
@@ -961,7 +959,7 @@ public class Server {
                 if (connection == null) {
                     logger.error("Cannot connect to database!");
                     sendErrorToUser(this.output, "Cannot connect to database");
-                    return false;
+                    return;
                 }
 
                 // Get user list and store in a map
@@ -1038,22 +1036,6 @@ public class Server {
                     return false;
                 }
 
-                // Check if this user is your friend
-                String checkFriendshipQuery = "SELECT * FROM Friendship WHERE user1_id=? AND user2_id=?";
-                try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
-                    st.setInt(1, Math.min(requestID, receiverID));
-                    st.setInt(2, Math.max(requestID, receiverID));
-
-                    try (ResultSet rs = st.executeQuery()) {
-                        if (!rs.next()) {
-                            // Already friends
-                            logger.info("Not friend");
-                            sendErrorToUser(this.output, "You and this user are not friend");
-                            return false;
-                        }
-                    }
-                }
-
                 // Check if user already in group
                 String checkFriendshipQuery = "SELECT * FROM ChatMember WHERE conversation_id=? AND user_id=?";
                 try (PreparedStatement st = connection.prepareStatement(checkFriendshipQuery)) {
@@ -1111,7 +1093,7 @@ public class Server {
             }
         }
         
-        private boolean createFriendship(Message message) throws InvalidUserException {
+        private boolean createFriendship(Message message) throws IOException, InvalidUserException {
             
             // Retrieve the user who made the request
             User requestUser = names.get(message.getName());
@@ -1480,10 +1462,11 @@ public class Server {
         // }
 
         private synchronized void closeConnections() {
-            updateClientStatus(this.user.getID(), Status.OFFLINE);
+            
             logger.debug("closeConnections() method Enter");
 
             if (user != null) {
+                updateClientStatus(this.user.getID(), Status.OFFLINE);
                 onlineUserMap.remove(this.user.getID());
                 // logger.info("User object: " + user + " has been removed!");
 
